@@ -1,3 +1,58 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-bg",
+      "description": "Scenic Konkani landscape with river and mountains",
+      "imageUrl": "https://picsum.photos/seed/konkan-river/1920/1080",
+      "imageHint": "konkan river mountains"
+    },
+    {
+      "id": "room-ac",
+      "description": "Premium AC room with king size bed",
+      "imageUrl": "https://picsum.photos/seed/chalke-ac/800/600",
+      "imageHint": "luxury room interior"
+    },
+    {
+      "id": "room-non-ac",
+      "description": "Authentic non-AC room with scenic views",
+      "imageUrl": "https://picsum.photos/seed/chalke-non-ac/800/600",
+      "imageHint": "cozy room interior"
+    },
+    {
+      "id": "food-chicken-wade",
+      "description": "Authentic Konkani Chicken Wade",
+      "imageUrl": "https://picsum.photos/seed/chicken-wade/600/400",
+      "imageHint": "indian spicy chicken"
+    },
+    {
+      "id": "food-ghavne",
+      "description": "Soft Konkani Ghavne pancakes",
+      "imageUrl": "https://picsum.photos/seed/ghavne/600/400",
+      "imageHint": "rice crepes"
+    },
+    {
+      "id": "attraction-waterfall",
+      "description": "Sawatsada Waterfall in full flow",
+      "imageUrl": "https://picsum.photos/seed/sawatsada/600/400",
+      "imageHint": "waterfall nature"
+    },
+    {
+      "id": "attraction-temple",
+      "description": "Ancient Parshuram Temple",
+      "imageUrl": "https://picsum.photos/seed/temple/600/400",
+      "imageHint": "ancient temple india"
+    },
+    {
+      "id": "terrace-dining",
+      "description": "Open terrace dining under the stars",
+      "imageUrl": "https://picsum.photos/seed/terrace/800/500",
+      "imageHint": "terrace dining sunset"
+    },
+    {
+      "id": "about-village",
+      "description": "Peaceful village life in Konkan",
+      "imageUrl": "https://picsum.photos/seed/konkan-village/800/600",
+      "imageHint": "village scenery"
+    }
+  ]
 }
