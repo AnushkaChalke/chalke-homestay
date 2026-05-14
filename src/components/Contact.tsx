@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from 'react';
@@ -30,54 +31,77 @@ const Contact = () => {
           <div className="flex flex-col lg:flex-row gap-16">
             {/* Contact Info & Map */}
             <div className="flex-1">
-              <span className="text-accent font-semibold tracking-widest uppercase text-sm mb-4 block">Get In Touch</span>
-              <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-8">Ready to Book Your <br />Experience?</h2>
+              <motion.span 
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-accent font-semibold tracking-widest uppercase text-sm mb-4 block"
+              >
+                Get In Touch
+              </motion.span>
+              <motion.h2 
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-4xl md:text-5xl font-headline font-bold text-primary mb-8"
+              >
+                Ready to Book Your <br />Experience?
+              </motion.h2>
               
               <div className="space-y-8 mb-12">
-                <div className="flex items-start gap-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-primary mb-1">Our Location</h5>
-                    <p className="text-muted-foreground text-sm">Chalke Homestay, Near Vashishti River, Konkan, Maharashtra</p>
-                    <a href="https://share.google/WpEDOabdhEYYDZWTh" target="_blank" rel="noopener noreferrer" className="text-accent text-xs font-bold uppercase tracking-widest mt-2 block hover:underline">Open in Google Maps</a>
-                  </div>
-                </div>
-                <div className="flex items-start gap-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-primary mb-1">Call Us Directly</h5>
-                    <p className="text-muted-foreground text-sm">+91 98765 43210</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-6">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center flex-shrink-0">
-                    <MessageCircle className="w-6 h-6 text-accent" />
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-primary mb-1">WhatsApp Booking</h5>
-                    <p className="text-muted-foreground text-sm">Instant support via WhatsApp</p>
-                    <a href="https://wa.me/919876543210" target="_blank" rel="noopener noreferrer" className="text-accent text-xs font-bold uppercase tracking-widest mt-2 block hover:underline">Chat Now</a>
-                  </div>
-                </div>
+                {[
+                  { icon: MapPin, title: "Our Location", text: "Chalke Homestay, Near Vashishti River, Konkan, Maharashtra", linkText: "Open in Google Maps", link: "https://share.google/WpEDOabdhEYYDZWTh" },
+                  { icon: Phone, title: "Call Us Directly", text: "+91 98765 43210" },
+                  { icon: MessageCircle, title: "WhatsApp Booking", text: "Instant support via WhatsApp", linkText: "Chat Now", link: "https://wa.me/919876543210" }
+                ].map((item, i) => (
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.2 + (i * 0.1) }}
+                    className="flex items-start gap-6"
+                  >
+                    <div className="w-12 h-12 rounded-2xl bg-primary/5 flex items-center justify-center flex-shrink-0">
+                      <item.icon className="w-6 h-6 text-accent" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-primary mb-1">{item.title}</h5>
+                      <p className="text-muted-foreground text-sm">{item.text}</p>
+                      {item.linkText && (
+                        <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-accent text-xs font-bold uppercase tracking-widest mt-2 block hover:underline">
+                          {item.linkText}
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
               </div>
 
-              {/* Map Placeholder/Embed */}
-              <div className="rounded-[2.5rem] overflow-hidden shadow-xl h-64 border border-muted bg-secondary/50 flex items-center justify-center relative group">
+              {/* Map Placeholder */}
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="rounded-[2.5rem] overflow-hidden shadow-xl h-64 border border-muted bg-secondary/50 flex items-center justify-center relative group"
+              >
                 <div className="absolute inset-0 grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 bg-[url('https://picsum.photos/seed/map/800/400')] bg-cover bg-center" />
                 <div className="relative z-10 p-6 glass rounded-2xl text-center">
                   <MapPin className="w-8 h-8 text-primary mx-auto mb-2" />
                   <p className="text-primary font-bold">Vashishti Riverfront</p>
                 </div>
-              </div>
+              </motion.div>
             </div>
 
             {/* Form */}
             <div className="flex-1">
-              <div className="bg-secondary/20 p-10 md:p-12 rounded-[3rem] border border-muted shadow-2xl relative">
+              <motion.div 
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                className="bg-secondary/20 p-10 md:p-12 rounded-[3rem] border border-muted shadow-2xl relative"
+              >
                 <div className="absolute top-0 right-0 p-8">
                   <div className="w-16 h-16 rounded-full border border-primary/10 flex items-center justify-center">
                     <Mail className="w-6 h-6 text-primary/20" />
@@ -125,11 +149,13 @@ const Contact = () => {
                       </select>
                     </div>
                   </div>
-                  <Button type="submit" disabled={loading} className="w-full py-8 rounded-[2rem] bg-primary text-white text-lg font-bold hover:bg-accent transition-all shadow-lg hover:shadow-2xl mt-4">
-                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Send Inquiry <Send className="w-5 h-5 ml-2" /></>}
-                  </Button>
+                  <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                    <Button type="submit" disabled={loading} className="w-full py-8 rounded-[2rem] bg-primary text-white text-lg font-bold hover:bg-accent transition-all shadow-lg hover:shadow-2xl mt-4">
+                      {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Send Inquiry <Send className="w-5 h-5 ml-2" /></>}
+                    </Button>
+                  </motion.div>
                 </form>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

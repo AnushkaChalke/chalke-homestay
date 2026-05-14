@@ -1,8 +1,9 @@
+
 "use client";
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Wifi, Thermometer, User, Maximize, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
@@ -30,34 +31,51 @@ const Rooms = () => {
       <div className="container px-6 mx-auto">
         <div className="text-center mb-16">
           <motion.span
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
             className="text-accent font-semibold tracking-widest uppercase text-sm mb-4 block"
           >
             Luxury Stays
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4">Choose Your Sanctuary</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4"
+          >
+            Choose Your Sanctuary
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="text-muted-foreground max-w-2xl mx-auto"
+          >
             Each room is thoughtfully designed to blend rustic village charm with modern comfort.
-          </p>
+          </motion.p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-12">
           {rooms.map((room, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
+              transition={{ delay: index * 0.2, duration: 0.6 }}
             >
-              <Card className="group overflow-hidden rounded-[2.5rem] border-none shadow-xl hover:shadow-2xl transition-all duration-500 bg-white">
+              <Card className="group overflow-hidden rounded-[2.5rem] border-none shadow-xl hover:shadow-3xl transition-all duration-500 bg-white">
                 <CardContent className="p-0">
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <img
+                    <motion.img
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.8 }}
                       src={room.image?.imageUrl}
                       alt={room.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="w-full h-full object-cover"
                       data-ai-hint={room.image?.imageHint}
                     />
                     <div className="absolute top-6 left-6 py-2 px-4 rounded-full glass-dark text-white text-xs font-semibold tracking-wider">
@@ -65,13 +83,21 @@ const Rooms = () => {
                     </div>
                   </div>
                   <div className="p-10">
-                    <h3 className="text-3xl font-headline font-bold text-primary mb-4">{room.title}</h3>
+                    <h3 className="text-3xl font-headline font-bold text-primary mb-4 group-hover:text-accent transition-colors">
+                      {room.title}
+                    </h3>
                     <p className="text-muted-foreground mb-8 line-clamp-2">{room.description}</p>
 
                     <div className="grid grid-cols-2 gap-4 mb-8">
                       {room.features.slice(0, 4).map((feat, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-sm text-primary/70">
-                          <div className="w-1.5 h-1.5 rounded-full bg-accent" />
+                          <motion.div 
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.4 + (idx * 0.1) }}
+                            className="w-1.5 h-1.5 rounded-full bg-accent" 
+                          />
                           {feat}
                         </div>
                       ))}
@@ -82,10 +108,12 @@ const Rooms = () => {
                         <span className="block text-2xl font-bold text-primary">₹3,500</span>
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Per Night</span>
                       </div>
-                      <Button className="rounded-full bg-primary hover:bg-accent px-8 group">
-                        Book Stay
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </Button>
+                      <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
+                        <Button className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
+                          Book Stay
+                          <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                        </Button>
+                      </motion.div>
                     </div>
                   </div>
                 </CardContent>
