@@ -6,11 +6,11 @@ import { UtensilsCrossed, Flame } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const dishes = [
-  { name: 'Chicken Wade', img: PlaceHolderImages.find(i => i.id === 'food-chicken-wade'), desc: 'Spicy farm-fresh chicken with fluffy multi-grain wade.' },
-  { name: 'Authentic Ghavne', img: PlaceHolderImages.find(i => i.id === 'food-ghavne'), desc: 'Lacy, soft rice crepes served with coconut chutney.' },
-  { name: 'Konkani Fish Fry', img: PlaceHolderImages.find(i => i.id === 'food-chicken-wade'), desc: 'Crispy rava-fried catch of the day with local spices.' },
-  { name: 'Dry Chicken', img: PlaceHolderImages.find(i => i.id === 'food-ghavne'), desc: 'Smoky, charred chicken pieces tossed in Maharashtrian masalas.' },
-  { name: 'Bhakri', img: PlaceHolderImages.find(i => i.id === 'food-chicken-wade'), desc: 'Traditional handmade rice or nachni bread.' },
+  { name: 'Kombdi Vade', img: PlaceHolderImages.find(i => i.id === 'food-chicken-wade'), desc: 'Spicy farm-fresh chicken curry served with fluffy, deep-fried multi-grain vade.' },
+  { name: 'Authentic Ghavne', img: PlaceHolderImages.find(i => i.id === 'food-ghavne'), desc: 'Lacy, soft rice crepes served with fresh coconut chutney.' },
+  { name: 'Konkani Fish Fry', img: PlaceHolderImages.find(i => i.id === 'food-fish-fry'), desc: 'Crispy rava-fried catch of the day with authentic local spices.' },
+  { name: 'Dry Chicken Sukka', img: PlaceHolderImages.find(i => i.id === 'food-dry-chicken'), desc: 'Smoky, charred chicken pieces tossed in traditional Maharashtrian masalas.' },
+  { name: 'Rice Bhakri', img: PlaceHolderImages.find(i => i.id === 'food-bhakri'), desc: 'Traditional handmade rice bread, perfect with spicy curries.' },
 ];
 
 const FoodExperience = () => {

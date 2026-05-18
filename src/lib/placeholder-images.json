@@ -20,15 +20,33 @@
     },
     {
       "id": "food-chicken-wade",
-      "description": "Authentic Konkani Chicken Wade",
-      "imageUrl": "https://picsum.photos/seed/chicken-wade/600/400",
-      "imageHint": "indian spicy chicken"
+      "description": "Authentic Konkani Kombdi Vade",
+      "imageUrl": "https://picsum.photos/seed/kombdi-vade/600/400",
+      "imageHint": "konkani chicken curry"
     },
     {
       "id": "food-ghavne",
       "description": "Soft Konkani Ghavne pancakes",
       "imageUrl": "https://picsum.photos/seed/ghavne/600/400",
       "imageHint": "rice crepes"
+    },
+    {
+      "id": "food-fish-fry",
+      "description": "Crispy Konkani Fish Fry",
+      "imageUrl": "https://picsum.photos/seed/fish-fry/600/400",
+      "imageHint": "fried fish"
+    },
+    {
+      "id": "food-dry-chicken",
+      "description": "Spicy Dry Chicken Sukka",
+      "imageUrl": "https://picsum.photos/seed/chicken-sukka/600/400",
+      "imageHint": "indian dry chicken"
+    },
+    {
+      "id": "food-bhakri",
+      "description": "Traditional Rice Bhakri",
+      "imageUrl": "https://picsum.photos/seed/bhakri/600/400",
+      "imageHint": "indian flatbread"
     },
     {
       "id": "attraction-waterfall",
