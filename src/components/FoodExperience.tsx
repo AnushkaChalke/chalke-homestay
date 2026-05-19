@@ -49,6 +49,7 @@ const FoodExperience = () => {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ y: -10 }}
               className="flex-shrink-0 w-80 snap-start"
             >
               <div className="group relative rounded-[2rem] overflow-hidden aspect-[3/4] shadow-2xl">
