@@ -7,6 +7,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useRouter } from 'next/navigation';
 
 const rooms = [
   {
@@ -26,6 +27,7 @@ const rooms = [
 ];
 
 const Rooms = () => {
+  const router = useRouter();
   return (
     <section className="py-24 bg-secondary/30" id="rooms">
       <div className="container px-6 mx-auto">
@@ -111,10 +113,17 @@ const Rooms = () => {
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Per Night</span>
                       </div>
                       <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
+                        {room.id === 'room-ac' ? (
+                          <Button onClick={() => router.push('/rooms/ac')} className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
+                            Book Stay
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </Button>
+                        ) : (
                         <Button className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
                           Book Stay
                           <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
+                        )}
                       </motion.div>
                     </div>
                   </div>
