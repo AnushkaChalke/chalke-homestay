@@ -65,7 +65,7 @@ const Hero = () => {
               variants={itemVariants}
               className="text-5xl md:text-7xl lg:text-8xl font-headline font-bold text-white mb-6 leading-tight"
             >
-              Chalke <br /> <span className="text-accent">Homestay</span>
+              Chalke <br /> <span className="text-amber-300">Homestay</span>
             </motion.h1>
             <motion.p 
               variants={itemVariants}
