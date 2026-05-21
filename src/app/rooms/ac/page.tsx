@@ -68,7 +68,7 @@ export default function ACPage() {
               Key Features
             </div>
 
-            <div className="grid gap-3 mb-8 text-sm text-primary/80">
+            <div className="grid gap-3 mb-8 text-sm text-primary/80 sm:grid-cols-2">
               <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
                 <Bed className="w-4 h-4 text-accent" />
                 <div>
@@ -111,7 +111,7 @@ export default function ACPage() {
                   <div className="text-xs text-muted-foreground">Hot water ready</div>
                 </div>
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="col-span-2 text-xs text-muted-foreground">
                 Extra charge per additional bed: ₹300
               </div>
             </div>
