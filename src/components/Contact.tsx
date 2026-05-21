@@ -51,9 +51,12 @@ const Contact = () => {
               
               <div className="space-y-8 mb-12">
                 {[
-                  { icon: MapPin, title: "Our Location", text: "Chalke Homestay, Near Vashishti River, Konkan, Maharashtra", linkText: "Open in Google Maps", link: "https://share.google/WpEDOabdhEYYDZWTh" },
-                  { icon: Phone, title: "Call Us Directly", text: "+91 98765 43210" },
-                  { icon: MessageCircle, title: "WhatsApp Booking", text: "Instant support via WhatsApp", linkText: "Chat Now", link: "https://wa.me/919876543210" }
+                  { icon: MapPin, title: "Our Location", text: "Chalke Homestays Anari Fata, Adarsh Nagar, Sati, Chinchghari, Chiplun, Maharashtra 415604", linkText: "Open in Google Maps", link: "https://www.google.com/maps/search/?api=1&query=chalke+homestays+anari+fata+adarsh+nagar+sati+chinchghari+chiplun+maharashtra+415604" },
+                  { icon: Phone, title: "Call Us Directly", text: "+91 95038 64263 or +91 98500 04263" },
+                  { icon: MessageCircle, title: "WhatsApp Booking", text: "Instant support via WhatsApp", links: [
+                    { href: "https://wa.me/919503864263", label: "+91 95038 64263" },
+                    { href: "https://wa.me/919850004263", label: "+91 98500 04263" },
+                  ] }
                 ].map((item, i) => (
                   <motion.div 
                     key={i}
@@ -69,29 +72,39 @@ const Contact = () => {
                     <div>
                       <h5 className="font-bold text-primary mb-1">{item.title}</h5>
                       <p className="text-muted-foreground text-sm">{item.text}</p>
-                      {item.linkText && (
+                      {item.links ? (
+                        <div className="flex flex-wrap items-center gap-2 text-accent text-xs font-bold uppercase tracking-widest mt-2">
+                          {item.links.map((link, idx) => (
+                            <React.Fragment key={link.href}>
+                              <a href={link.href} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                                {link.label}
+                              </a>
+                              {idx < item.links.length - 1 && <span className="text-muted-foreground">or</span>}
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      ) : item.linkText ? (
                         <a href={item.link} target="_blank" rel="noopener noreferrer" className="text-accent text-xs font-bold uppercase tracking-widest mt-2 block hover:underline">
                           {item.linkText}
                         </a>
-                      )}
+                      ) : null}
                     </div>
                   </motion.div>
                 ))}
               </div>
 
               {/* Map Placeholder */}
-              <motion.div 
+              <motion.a 
+                href="https://www.google.com/maps/search/?api=1&query=chalke+homestays+anari+fata+adarsh+nagar+sati+chinchghari+chiplun+maharashtra+415604"
+                target="_blank"
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="rounded-[2.5rem] overflow-hidden shadow-xl h-64 border border-muted bg-secondary/50 flex items-center justify-center relative group"
+                className="rounded-[2.5rem] overflow-hidden shadow-xl h-64 border border-muted relative block"
               >
-                <div className="absolute inset-0 grayscale opacity-40 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 bg-[url('https://picsum.photos/seed/map/800/400')] bg-cover bg-center" />
-                <div className="relative z-10 p-6 glass rounded-2xl text-center">
-                  <MapPin className="w-8 h-8 text-primary mx-auto mb-2" />
-                  <p className="text-primary font-bold">Vashishti Riverfront</p>
-                </div>
-              </motion.div>
+                <div className="absolute inset-0 bg-[url('/Locations/map.png')] bg-cover bg-center" />
+              </motion.a>
             </div>
 
             {/* Form */}
