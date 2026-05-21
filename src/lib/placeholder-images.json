@@ -3,7 +3,7 @@
     {
       "id": "hero-bg",
       "description": "Scenic Konkani landscape with river and mountains",
-      "imageUrl": "https://picsum.photos/seed/konkan-river/1920/1080",
+      "imageUrl": "/coverimage/coverimage.png",
       "imageHint": "konkan river mountains"
     },
     {
