@@ -105,7 +105,9 @@ const Rooms = () => {
 
                     <div className="flex items-center justify-between border-t pt-8">
                       <div>
-                        <span className="block text-2xl font-bold text-primary">₹3,500</span>
+                        <span className="block text-2xl font-bold text-primary">
+                          {room.id === 'room-ac' ? '₹1,500' : '₹1,200'}
+                        </span>
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Per Night</span>
                       </div>
                       <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
