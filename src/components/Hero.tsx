@@ -80,7 +80,7 @@ const Hero = () => {
                 </Button>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="outline" className="rounded-full border-white text-white hover:bg-white hover:text-primary px-8 text-base backdrop-blur-sm">
+                <Button size="lg" variant="outline" className="rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-xl shadow-white/10 hover:bg-white/20 hover:text-primary px-8 text-base glass">
                   Our Story
                 </Button>
               </motion.div>
