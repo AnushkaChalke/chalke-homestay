@@ -21,44 +21,56 @@
     {
       "id": "food-chicken-wade",
       "description": "Authentic Konkani Kombdi Vade",
-      "imageUrl": "https://picsum.photos/seed/kombdi-vade/600/400",
+      "imageUrl": "/Food/kombdi_vade.jpg",
       "imageHint": "konkani chicken thali"
     },
     {
       "id": "food-ghavne",
       "description": "Soft Konkani Ghavne pancakes",
-      "imageUrl": "https://picsum.photos/seed/ghavne/600/400",
+      "imageUrl": "/Food/Authentic_Ghavan.jpg",
       "imageHint": "rice crepes"
     },
     {
       "id": "food-fish-fry",
       "description": "Crispy Konkani Fish Fry",
-      "imageUrl": "https://picsum.photos/seed/fish-fry/600/400",
+      "imageUrl": "/Food/Konkani%20Fish%20Fry.jpg",
       "imageHint": "fried fish"
     },
     {
       "id": "food-dry-chicken",
       "description": "Spicy Dry Chicken Sukka",
-      "imageUrl": "https://picsum.photos/seed/chicken-sukka/600/400",
+      "imageUrl": "/Food/Dry_chicken_sukha.jpg",
       "imageHint": "indian dry chicken"
     },
     {
       "id": "food-bhakri",
       "description": "Traditional Rice Bhakri",
-      "imageUrl": "https://picsum.photos/seed/bhakri/600/400",
+      "imageUrl": "/Food/Rice_Bhakri.jpg",
       "imageHint": "indian flatbread"
     },
     {
       "id": "attraction-waterfall",
       "description": "Sawatsada Waterfall in full flow",
-      "imageUrl": "https://picsum.photos/seed/sawatsada/600/400",
+      "imageUrl": "/Locations/Sawatsada-Waterfall.jpg",
       "imageHint": "waterfall nature"
     },
     {
       "id": "attraction-temple",
       "description": "Ancient Parshuram Temple",
-      "imageUrl": "https://picsum.photos/seed/temple/600/400",
+      "imageUrl": "/Locations/Parashuram_Temple.jpg",
       "imageHint": "ancient temple india"
+    },
+    {
+      "id": "attraction-river",
+      "description": "Scenic Vashishti River",
+      "imageUrl": "/Locations/Vashishti-River.jpg",
+      "imageHint": "river scenery"
+    },
+    {
+      "id": "attraction-fort",
+      "description": "Historic Gowalkot Fort",
+      "imageUrl": "/Locations/Gowalkot_Fort.jpg",
+      "imageHint": "historic fort"
     },
     {
       "id": "terrace-dining",

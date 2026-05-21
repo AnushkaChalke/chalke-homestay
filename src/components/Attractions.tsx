@@ -9,8 +9,8 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const attractions = [
   { name: 'Sawatsada Waterfall', dist: '3.5 KM', img: PlaceHolderImages.find(i => i.id === 'attraction-waterfall'), tags: ['Nature', 'Relaxation'] },
   { name: 'Parshuram Temple', dist: '4 KM', img: PlaceHolderImages.find(i => i.id === 'attraction-temple'), tags: ['Heritage', 'Spiritual'] },
-  { name: 'Vashishti River', dist: '5 KM', img: PlaceHolderImages.find(i => i.id === 'hero-bg'), tags: ['Water', 'Scenic'] },
-  { name: 'Gowalkot Fort', dist: '8 KM', img: PlaceHolderImages.find(i => i.id === 'about-village'), tags: ['History', 'Hiking'] },
+  { name: 'Vashishti River', dist: '5 KM', img: PlaceHolderImages.find(i => i.id === 'attraction-river'), tags: ['Water', 'Scenic'] },
+  { name: 'Gowalkot Fort', dist: '8 KM', img: PlaceHolderImages.find(i => i.id === 'attraction-fort'), tags: ['History', 'Hiking'] },
 ];
 
 const Attractions = () => {
