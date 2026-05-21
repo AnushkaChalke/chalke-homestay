@@ -27,7 +27,7 @@ const Hero = () => {
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
   };
 
   return (
@@ -91,7 +91,7 @@ const Hero = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9, x: 50 }}
             animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
+            transition={{ duration: 1, delay: 0.8 }}
             className="hidden lg:block w-full max-w-sm"
           >
             <div className="glass-dark p-8 rounded-[2.5rem] shadow-2xl border border-white/10">

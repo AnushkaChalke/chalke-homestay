@@ -25,14 +25,44 @@ export default function ACPage() {
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [guests, setGuests] = useState('2');
+  const [submitting, setSubmitting] = useState(false);
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: 'Booking request sent', description: `Request for ${guests} guest${guests === '1' ? '' : 's'} received. We will contact you shortly.` });
-    setName(''); setPhone(''); setCheckin(''); setCheckout('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: name,
+          phone,
+          checkIn: checkin,
+          checkOut: checkout,
+          guests,
+          roomType: 'AC 1BHK Premium',
+          source: 'ac-room-page',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Booking submission failed');
+      }
+
+      toast({ title: 'Booking request sent', description: `Request for ${guests} guest${guests === '1' ? '' : 's'} received. We will contact you shortly.` });
+      setName('');
+      setPhone('');
+      setCheckin('');
+      setCheckout('');
+    } catch {
+      toast({ title: 'Booking could not be sent', description: 'Please try again or contact us directly.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -147,7 +177,9 @@ export default function ACPage() {
               </div>
 
               <div>
-                <Button type="submit" className="w-full py-4 bg-accent text-white">Request Booking</Button>
+                <Button type="submit" className="w-full py-4 bg-accent text-white" disabled={submitting}>
+                  {submitting ? 'Sending...' : 'Request Booking'}
+                </Button>
               </div>
             </form>
           </div>
