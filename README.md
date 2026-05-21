@@ -8,6 +8,8 @@ To get started, take a look at src/app/page.tsx.
 
 This project includes a lightweight bookings backend (Firestore) and an admin dashboard at `/admin/bookings`.
 
+The booking API is Firestore-only. If Firestore server credentials are not configured locally, booking requests will return an error until you set them.
+
 Required environment variables (use `.env.local` locally or set in your hosting provider):
 
 - `ADMIN_BOOKINGS_PASSWORD` — password to view the admin dashboard. Set to a secure string.

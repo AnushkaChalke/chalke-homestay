@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase-admin/firestore';
 import { z } from 'zod';
-import { firestore } from '@/lib/firebase-admin';
+import { getFirestoreClient, isFirebaseAdminConfigured } from '@/lib/firebase-admin';
 
 export const bookingStatusValues = ['requested', 'reserved', 'cancelled'] as const;
 
@@ -53,9 +53,15 @@ type BookingDocument = {
   updatedAt: Timestamp;
 };
 
-const bookingsCollection = firestore.collection('bookings');
+function assertFirestoreConfigured() {
+  if (!isFirebaseAdminConfigured()) {
+    throw new Error(
+      'Firestore admin credentials are missing. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY in your environment.',
+    );
+  }
+}
 
-export function toBookingRecord(id: string, data: FirebaseFirestore.DocumentData): BookingRecord {
+function toBookingRecord(id: string, data: FirebaseFirestore.DocumentData): BookingRecord {
   const typedData = data as BookingDocument;
 
   return {
@@ -76,9 +82,11 @@ export function toBookingRecord(id: string, data: FirebaseFirestore.DocumentData
 }
 
 export async function createBooking(input: z.infer<typeof bookingInputSchema>) {
+  assertFirestoreConfigured();
+  const firestore = getFirestoreClient();
   const now = Timestamp.now();
 
-  const docRef = await bookingsCollection.add({
+  const docRef = await firestore.collection('bookings').add({
     ...input,
     status: 'requested' as const,
     reservedRoom: null,
@@ -92,13 +100,17 @@ export async function createBooking(input: z.infer<typeof bookingInputSchema>) {
 }
 
 export async function listBookings() {
-  const snapshot = await bookingsCollection.orderBy('createdAt', 'desc').get();
+  assertFirestoreConfigured();
+  const firestore = getFirestoreClient();
+  const snapshot = await firestore.collection('bookings').orderBy('createdAt', 'desc').get();
 
   return snapshot.docs.map((doc) => toBookingRecord(doc.id, doc.data()));
 }
 
 export async function updateBooking(id: string, update: z.infer<typeof bookingUpdateSchema>) {
-  const docRef = bookingsCollection.doc(id);
+  assertFirestoreConfigured();
+  const firestore = getFirestoreClient();
+  const docRef = firestore.collection('bookings').doc(id);
   const existing = await docRef.get();
 
   if (!existing.exists) {

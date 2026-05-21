@@ -1,5 +1,3 @@
-"use client";
-
 import { cookies } from 'next/headers';
 import AdminLoginForm from '@/components/admin/AdminLoginForm';
 import BookingAdminDashboard from '@/components/admin/BookingAdminDashboard';

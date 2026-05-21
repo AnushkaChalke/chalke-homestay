@@ -30,6 +30,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# firebase credentials / local data
+homestay-*-firebase-adminsdk-*.json
+/data/
+
 # vercel
 .vercel
 

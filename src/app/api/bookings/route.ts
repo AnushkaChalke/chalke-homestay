@@ -10,8 +10,13 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const bookings = await listBookings();
-  return NextResponse.json({ bookings });
+  try {
+    const bookings = await listBookings();
+    return NextResponse.json({ bookings });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to load bookings';
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -25,6 +30,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const booking = await createBooking(parsed.data);
-  return NextResponse.json({ booking }, { status: 201 });
+  try {
+    const booking = await createBooking(parsed.data);
+    return NextResponse.json({ booking }, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unable to create booking';
+    return NextResponse.json({ error: message }, { status: 503 });
+  }
 }
