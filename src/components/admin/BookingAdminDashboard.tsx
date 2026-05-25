@@ -2,13 +2,13 @@
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
 import { addDays, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns';
-import { AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Loader2, LogOut, RefreshCcw, ShieldCheck, DatabaseZap, TriangleAlert } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, Loader2, LogOut, RefreshCcw, ShieldCheck, DatabaseZap, TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import type { BookingRecord } from '@/lib/bookings';
-import { bookingOccupiesDate, expandBookingDates, getDateKey } from '@/lib/booking-calendar';
+import { bookingOccupiesDate, bookingOverlapsRange, expandBookingDates } from '@/lib/booking-calendar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,8 +27,65 @@ const statusStyles: Record<BookingRecord['status'], string> = {
   cancelled: 'bg-rose-500/10 text-rose-700 border-rose-500/20',
 };
 
+const ROOM_GROUPS = [
+  {
+    label: 'AC Rooms',
+    roomType: 'AC 1BHK Premium',
+    rooms: ['101', '102', '201'],
+  },
+  {
+    label: 'Non-AC Rooms',
+    roomType: 'Non-AC 1BHK Authentic',
+    rooms: ['202', '301', '302'],
+  },
+] as const;
+
 const displayDate = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
 const displayDateTime = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
+
+function findAvailableRoom(booking: BookingRecord, allBookings: BookingRecord[]) {
+  const pool = ROOM_GROUPS.find((group) => group.roomType === booking.roomType)?.rooms ?? [];
+  const selectedStart = parseISO(booking.checkIn);
+  const selectedEnd = parseISO(booking.checkOut);
+
+  const occupiedRooms = new Set(
+    allBookings
+      .filter(
+        (existing) =>
+          existing.id !== booking.id &&
+          existing.status === 'reserved' &&
+          existing.roomType === booking.roomType &&
+          existing.reservedRoom &&
+          bookingOverlapsRange(existing, selectedStart, selectedEnd),
+      )
+      .map((existing) => existing.reservedRoom),
+  );
+
+  return pool.find((room) => !occupiedRooms.has(room)) ?? null;
+}
+
+function getRoomPool(roomType: string) {
+  return ROOM_GROUPS.find((group) => group.roomType === roomType)?.rooms ?? [];
+}
+
+function getAvailableRoomsForBooking(booking: BookingRecord, allBookings: BookingRecord[]) {
+  const pool = getRoomPool(booking.roomType);
+  const selectedStart = parseISO(booking.checkIn);
+  const selectedEnd = parseISO(booking.checkOut);
+
+  return pool.filter((room) => {
+    const conflictingBooking = allBookings.find(
+      (existing) =>
+        existing.id !== booking.id &&
+        existing.status === 'reserved' &&
+        existing.roomType === booking.roomType &&
+        existing.reservedRoom === room &&
+        bookingOverlapsRange(existing, selectedStart, selectedEnd),
+    );
+
+    return !conflictingBooking;
+  });
+}
 
 export default function BookingAdminDashboard() {
   const router = useRouter();
@@ -41,18 +98,39 @@ export default function BookingAdminDashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [isPending, startTransition] = useTransition();
 
-  const stats = useMemo(
-    () => ({
-      total: bookings.length,
-      requested: bookings.filter((booking) => booking.status === 'requested').length,
-      reserved: bookings.filter((booking) => booking.status === 'reserved').length,
-    }),
-    [bookings],
-  );
-
   const visibleMonthBookings = useMemo(
     () => bookings.filter((booking) => expandBookingDates(booking).some((date) => isSameMonth(date, calendarMonth))),
     [bookings, calendarMonth],
+  );
+
+  const roomDiagram = useMemo(
+    () =>
+      ROOM_GROUPS.map((group) => ({
+        ...group,
+        rooms: group.rooms.map((roomNumber) => {
+          const reservedBooking = bookings.find(
+            (booking) =>
+              booking.status === 'reserved' &&
+              booking.roomType === group.roomType &&
+              booking.reservedRoom === roomNumber &&
+              bookingOccupiesDate(booking, selectedDate),
+          );
+
+          const requestedCount = bookings.filter(
+            (booking) => booking.status === 'requested' && booking.roomType === group.roomType && bookingOccupiesDate(booking, selectedDate),
+          ).length;
+
+          const status = reservedBooking ? 'reserved' : requestedCount > 0 ? 'requested' : 'available';
+
+          return {
+            roomNumber,
+            status,
+            reservedBooking,
+            requestedCount,
+          };
+        }),
+      })),
+    [bookings, selectedDate],
   );
 
   const calendarDays = useMemo(
@@ -129,12 +207,15 @@ export default function BookingAdminDashboard() {
     void loadBookings();
   }, []);
 
-  const updateStatus = (bookingId: string, status: BookingRecord['status']) => {
+  const updateStatus = (booking: BookingRecord, status: BookingRecord['status'], reservedRoom: string | null = booking.reservedRoom ?? null) => {
     startTransition(async () => {
-      const response = await fetch(`/api/bookings/${bookingId}`, {
+      const response = await fetch(`/api/bookings/${booking.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status,
+          reservedRoom: status === 'reserved' ? reservedRoom : null,
+        }),
       });
 
       if (response.status === 401) {
@@ -149,8 +230,36 @@ export default function BookingAdminDashboard() {
       }
 
       const data = await response.json();
-      setBookings((current) => current.map((booking) => (booking.id === bookingId ? data.booking : booking)));
+      setBookings((current) => current.map((currentBooking) => (currentBooking.id === booking.id ? data.booking : currentBooking)));
       toast({ title: 'Booking updated', description: `Marked as ${status}.` });
+    });
+  };
+
+  const updateReservedRoom = (booking: BookingRecord, reservedRoom: string) => {
+    startTransition(async () => {
+      const response = await fetch(`/api/bookings/${booking.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: booking.status,
+          reservedRoom,
+        }),
+      });
+
+      if (response.status === 401) {
+        toast({ title: 'Session expired', description: 'Please sign in again.' });
+        router.refresh();
+        return;
+      }
+
+      if (!response.ok) {
+        toast({ title: 'Room update failed', description: 'The reserved room could not be updated.' });
+        return;
+      }
+
+      const data = await response.json();
+      setBookings((current) => current.map((currentBooking) => (currentBooking.id === booking.id ? data.booking : currentBooking)));
+      toast({ title: 'Room updated', description: `Assigned room ${reservedRoom}.` });
     });
   };
 
@@ -176,19 +285,51 @@ export default function BookingAdminDashboard() {
     });
   };
 
+  const renderRoomSelector = (booking: BookingRecord) => {
+    const options = getRoomPool(booking.roomType);
+    const availableRooms = getAvailableRoomsForBooking(booking, bookings);
+
+    return (
+      <select
+        value={booking.reservedRoom ?? ''}
+        onChange={(event) => updateReservedRoom(booking, event.target.value)}
+        disabled={isPending}
+        className="w-full rounded-full border border-muted bg-white px-3 py-2 text-sm text-primary shadow-sm outline-none transition focus:border-accent"
+      >
+        <option value="">Choose room</option>
+        {options.map((roomNumber) => {
+          const isAvailable = availableRooms.includes(roomNumber) || booking.reservedRoom === roomNumber;
+          return (
+            <option key={roomNumber} value={roomNumber} disabled={!isAvailable}>
+              Room {roomNumber}{isAvailable ? '' : ' (occupied)'}
+            </option>
+          );
+        })}
+      </select>
+    );
+  };
+
   const bookingActionControls = (booking: BookingRecord) => (
     <div className="flex flex-wrap justify-end gap-2">
       {booking.status === 'requested' ? (
-        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking.id, 'reserved')} disabled={isPending}>
+        <Button size="sm" className="rounded-full bg-primary" onClick={() => {
+          const assignedRoom = booking.reservedRoom ?? findAvailableRoom(booking, bookings);
+          if (!assignedRoom) {
+            toast({ title: 'No rooms available', description: 'All rooms of this type are already reserved for the selected dates.' });
+            return;
+          }
+
+          updateStatus(booking, 'reserved', assignedRoom);
+        }} disabled={isPending}>
           Accept
         </Button>
       ) : null}
       {booking.status === 'requested' || booking.status === 'reserved' ? (
-        <Button size="sm" variant="destructive" className="rounded-full" onClick={() => updateStatus(booking.id, 'cancelled')} disabled={isPending}>
+        <Button size="sm" variant="destructive" className="rounded-full" onClick={() => updateStatus(booking, 'cancelled', null)} disabled={isPending}>
           Cancel
         </Button>
       ) : booking.status === 'cancelled' ? (
-        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking.id, 'requested')} disabled={isPending}>
+        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking, 'requested', null)} disabled={isPending}>
           Revive
         </Button>
       ) : null}
@@ -266,20 +407,70 @@ export default function BookingAdminDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {[
-            { label: 'Total requests', value: stats.total, icon: CalendarDays },
-            { label: 'Waiting review', value: stats.requested, icon: Clock3 },
-            { label: 'Reserved', value: stats.reserved, icon: CheckCircle2 },
-          ].map((item) => (
-            <div key={item.label} className="rounded-2xl border border-muted bg-secondary/20 p-2.5 sm:rounded-3xl sm:p-5">
-              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-white shadow-sm sm:mb-4 sm:h-11 sm:w-11">
-                <item.icon className="h-4 w-4 text-accent" />
-              </div>
-              <div className="text-lg font-bold text-primary sm:text-3xl">{item.value}</div>
-              <div className="mt-1 text-[0.6rem] leading-tight text-muted-foreground sm:text-sm">{item.label}</div>
+        <div className="rounded-[1.25rem] border border-primary/10 bg-gradient-to-br from-white to-secondary/20 p-3 shadow-sm sm:rounded-[2rem] sm:p-5">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <div className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary/50 sm:text-xs sm:tracking-[0.3em]">Rooms</div>
+              <h2 className="mt-1 text-lg font-headline font-bold text-primary sm:text-2xl">Room availability diagram</h2>
+              <p className="mt-1 text-sm text-muted-foreground">3 AC rooms (101, 102, 201) and 3 non-AC rooms (202, 301, 302) for the selected day.</p>
             </div>
-          ))}
+            <div className="flex flex-wrap items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.2em]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-rose-700"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Reserved</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-amber-700"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Requested</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-700"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Available</span>
+            </div>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-2">
+            {roomDiagram.map((group) => (
+              <div key={group.roomType} className="rounded-[1.25rem] border bg-white p-4 shadow-sm sm:rounded-[1.75rem] sm:p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary/50 sm:text-xs sm:tracking-[0.3em]">{group.label}</div>
+                    <h3 className="mt-1 text-base font-bold text-primary sm:text-xl">Rooms {group.rooms.map((room) => room.roomNumber).join(', ')}</h3>
+                  </div>
+                  <div className="rounded-full border bg-secondary/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    {group.rooms.length} rooms
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {group.rooms.map((room) => (
+                    <div
+                      key={room.roomNumber}
+                      className={`rounded-2xl border p-3 shadow-sm ${room.status === 'reserved' ? 'border-rose-200 bg-rose-50' : room.status === 'requested' ? 'border-amber-200 bg-amber-50' : 'border-emerald-200 bg-emerald-50'}`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm font-bold text-primary">Room {room.roomNumber}</div>
+                        <span className={`rounded-full px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.18em] ${room.status === 'reserved' ? 'bg-rose-500/10 text-rose-700' : room.status === 'requested' ? 'bg-amber-500/10 text-amber-700' : 'bg-emerald-500/10 text-emerald-700'}`}>
+                          {room.status}
+                        </span>
+                      </div>
+
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        {room.status === 'reserved' ? (
+                          <>
+                            <div className="font-medium text-primary">{room.reservedBooking?.guestName}</div>
+                            <div className="mt-1">{displayDate(room.reservedBooking?.checkIn ?? '')} → {displayDate(room.reservedBooking?.checkOut ?? '')}</div>
+                          </>
+                        ) : room.status === 'requested' ? (
+                          <>
+                            <div className="font-medium text-primary">Request waiting</div>
+                            <div className="mt-1">{room.requestedCount} request{room.requestedCount === 1 ? '' : 's'} for this room type today</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="font-medium text-primary">Open for booking</div>
+                            <div className="mt-1">No reserved booking on the selected day</div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-[1.25rem] border border-primary/10 bg-gradient-to-br from-white to-secondary/20 p-3 shadow-sm sm:rounded-[2rem] sm:p-5">
@@ -421,6 +612,10 @@ export default function BookingAdminDashboard() {
                         <div className="mt-1 truncate font-medium text-primary">{booking.source}</div>
                       </div>
                     </div>
+                      <div className="rounded-xl bg-muted/30 px-3 py-2">
+                        <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Room</div>
+                        <div className="mt-2">{renderRoomSelector(booking)}</div>
+                      </div>
                     <div className="rounded-xl bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                       <div>Created: {displayDateTime(booking.createdAt)}</div>
                       <div className="mt-1">Updated: {displayDateTime(booking.updatedAt)}</div>
@@ -444,6 +639,7 @@ export default function BookingAdminDashboard() {
                   <th className="px-6 py-4">Stay</th>
                   <th className="px-6 py-4">Details</th>
                   <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Room</th>
                   <th className="px-6 py-4 text-right">Action</th>
                 </tr>
               </thead>
@@ -470,6 +666,9 @@ export default function BookingAdminDashboard() {
                       <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${statusStyles[booking.status]}`}>
                         {booking.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-5">
+                      {renderRoomSelector(booking)}
                     </td>
                     <td className="px-6 py-5 text-right">
                       {bookingActionControls(booking)}
