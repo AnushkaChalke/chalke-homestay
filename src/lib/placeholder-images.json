@@ -9,13 +9,13 @@
     {
       "id": "room-ac",
       "description": "Premium AC room with king size bed",
-      "imageUrl": "https://picsum.photos/seed/chalke-ac/800/600",
+      "imageUrl": "/misc/AC_room.jpeg",
       "imageHint": "luxury room interior"
     },
     {
       "id": "room-non-ac",
       "description": "Authentic non-AC room with scenic views",
-      "imageUrl": "https://picsum.photos/seed/chalke-non-ac/800/600",
+      "imageUrl": "/misc/Non_AC_room.jpeg",
       "imageHint": "cozy room interior"
     },
     {

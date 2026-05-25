@@ -138,7 +138,7 @@ const Rooms = () => {
           whileInView={{ opacity: 1 }}
           className="text-center mt-12 text-sm text-muted-foreground italic"
         >
-          * Extra mattress available with additional charges. 4 guests capacity per room.
+          * Extra mattress available with additional charges.
         </motion.p>
       </div>
     </section>

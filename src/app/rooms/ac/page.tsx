@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft, ArrowRight, Bed, CalendarDays, Car, CheckCircle2, Clock3, Droplet, Loader2, Thermometer, Wifi, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import Calendar from '@/components/ui/calendar';
+import { expandBookingDates } from '@/lib/booking-calendar';
+import { format, isBefore, parseISO } from 'date-fns';
 
 export default function ACPage() {
   const { toast } = useToast();
@@ -29,6 +32,7 @@ export default function ACPage() {
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'available' | 'unavailable' | 'error'>('idle');
   const [availabilityMessage, setAvailabilityMessage] = useState('Select dates to check availability.');
+  const [occupiedDates, setOccupiedDates] = useState<Date[]>([]);
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
@@ -82,6 +86,77 @@ export default function ACPage() {
     };
   }, [checkin, checkout]);
 
+  useEffect(() => {
+    // load upcoming bookings to mark occupied dates on the calendar
+    let mounted = true;
+
+    (async () => {
+      try {
+        const params = new URLSearchParams({ roomType: 'AC 1BHK Premium' });
+        const res = await fetch(`/api/availability?${params.toString()}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        const bookings = data.upcomingBookings ?? [];
+
+        const allDates: string[] = [];
+        bookings.forEach((b: any) => {
+          try {
+            const dates = expandBookingDates(b);
+            dates.forEach((d) => allDates.push(format(d, 'yyyy-MM-dd')));
+          } catch (e) {
+            // ignore
+          }
+        });
+
+        // dedupe and set Date objects
+        const unique = Array.from(new Set(allDates)).map((s) => parseISO(s));
+        if (mounted) setOccupiedDates(unique);
+      } catch (e) {
+        // ignore
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  function isDateOccupied(d: Date) {
+    return occupiedDates.some((od) => format(od, 'yyyy-MM-dd') === format(d, 'yyyy-MM-dd'));
+  }
+
+  const handleCalendarDateSelect = (d: Date) => {
+    if (isDateOccupied(d)) {
+      setAvailabilityStatus('unavailable');
+      setAvailabilityMessage('Selected date is already booked.');
+      return;
+    }
+
+    const clicked = format(d, 'yyyy-MM-dd');
+    if (!checkin) {
+      setCheckin(clicked);
+      setAvailabilityMessage('Select check-out date.');
+      return;
+    }
+
+    if (checkin && !checkout) {
+      // if clicked is before checkin, treat as new checkin
+      if (isBefore(parseISO(clicked), parseISO(checkin))) {
+        setCheckin(clicked);
+        setAvailabilityMessage('Select check-out date.');
+        return;
+      }
+
+      setCheckout(clicked);
+      return;
+    }
+
+    // both set -> start new range
+    setCheckin(clicked);
+    setCheckout('');
+    setAvailabilityMessage('Select check-out date.');
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -118,138 +193,115 @@ export default function ACPage() {
   };
 
   return (
-    <main className="py-24 container px-6 mx-auto">
-      <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="p-6">
-            <div className="relative">
-              <img src={`/room/AC/${encodeURIComponent(images[index])}`} alt={`AC Room ${index+1}`} className="w-full h-96 object-cover rounded-lg" />
-              <button onClick={prev} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/60 p-2 rounded-full shadow"> <ArrowLeft className="w-4 h-4" /> </button>
-              <button onClick={next} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/60 p-2 rounded-full shadow"> <ArrowRight className="w-4 h-4" /> </button>
+    <main className="py-16 lg:py-24">
+      <div className="container px-6 mx-auto">
+        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-8 items-start">
+          <div className="lg:col-span-7">
+            <div className="relative rounded-3xl overflow-hidden shadow-xl">
+              <img src={`/room/AC/${encodeURIComponent(images[index])}`} alt={`AC Room ${index+1}`} className="w-full h-[520px] object-cover" />
+              <div className="absolute left-6 bottom-6 bg-gradient-to-r from-black/60 to-black/20 text-white rounded-full py-2 px-4 text-sm font-semibold">AC 1BHK Premium</div>
+              <div className="absolute right-6 top-6 bg-white/90 rounded-lg p-3 shadow-md">
+                <div className="text-sm text-muted-foreground">Price</div>
+                <div className="text-2xl font-bold">₹1,500 <span className="text-xs font-medium text-muted-foreground">/ night</span></div>
+              </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-4 gap-2">
+            <div className="mt-6 grid grid-cols-5 gap-3">
               {images.map((img, i) => (
-                <button key={img} onClick={() => setIndex(i)} className={`rounded overflow-hidden border ${i === index ? 'ring-2 ring-accent' : ''}`}>
-                  <img src={`/room/AC/${encodeURIComponent(img)}`} alt={img} className="w-full h-20 object-cover" />
+                <button key={img} onClick={() => setIndex(i)} className={`col-span-1 overflow-hidden rounded-lg border ${i === index ? 'ring-2 ring-accent' : ''}`}>
+                  <img src={`/room/AC/${encodeURIComponent(img)}`} alt={img} className="w-full h-24 object-cover" />
                 </button>
               ))}
             </div>
+
+            <div className="mt-8 prose max-w-none">
+              <h2 className="font-headline text-3xl">A premium stay blending comfort & authenticity</h2>
+              <p className="text-muted-foreground">Relax in a thoughtfully designed 1BHK with modern amenities, private bathroom, and sweeping views of the konkan landscape. Perfect for couples or small families looking for a peaceful getaway.</p>
+              <ul className="mt-4 grid sm:grid-cols-2 gap-3 list-none">
+                <li className="flex items-start gap-3"><CheckCircle2 className="text-accent mt-1" /> King-size bed with fresh linen</li>
+                <li className="flex items-start gap-3"><CheckCircle2 className="text-accent mt-1" /> Private bathroom with hot water</li>
+                <li className="flex items-start gap-3"><CheckCircle2 className="text-accent mt-1" /> Fast WiFi and workspace</li>
+                <li className="flex items-start gap-3"><CheckCircle2 className="text-accent mt-1" /> Complimentary tea & coffee</li>
+              </ul>
+            </div>
           </div>
 
-          <div className="p-6">
-            <h1 className="text-3xl font-headline font-bold mb-2">AC 1BHK Premium</h1>
-            <p className="text-muted-foreground mb-4">Luxury AC room with sofa cum bed, private bathroom, and scenic views.</p>
-            <div className="mb-6">
-              <span className="text-2xl font-bold">₹1,500</span>
-              <span className="ml-3 text-xs text-muted-foreground uppercase font-semibold">Per Night</span>
-            </div>
-
-            <div className="mb-4 flex items-center gap-2 text-sm uppercase tracking-[0.3em] text-accent font-semibold">
-              <span className="h-1 w-10 bg-accent rounded-full" />
-              Key Features
-            </div>
-
-            <div className="grid gap-3 mb-8 text-sm text-primary/80 sm:grid-cols-2">
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Bed className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">1BHK</div>
-                  <div className="text-xs text-muted-foreground">Sofa cum bed included</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Droplet className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">2 bathrooms</div>
-                  <div className="text-xs text-muted-foreground">Modern fittings</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Thermometer className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">AC room</div>
-                  <div className="text-xs text-muted-foreground">Comfort all year</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Wifi className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">Free WiFi</div>
-                  <div className="text-xs text-muted-foreground">High-speed internet</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Car className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">Free parking</div>
-                  <div className="text-xs text-muted-foreground">Secure space</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl border border-secondary/50 bg-secondary/10 p-3">
-                <Zap className="w-4 h-4 text-accent" />
-                <div>
-                  <div className="font-semibold">Geyser included</div>
-                  <div className="text-xs text-muted-foreground">Hot water ready</div>
-                </div>
-              </div>
-              <div className="col-span-2 text-xs text-muted-foreground">
-                Extra charge per additional bed: ₹300
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <label className="text-xs font-bold text-primary/70 block mb-2">Guests</label>
-              <select value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full rounded-2xl border p-3 text-sm">
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4">4 Guests</option>
-              </select>
-            </div>
-
-            <div className="mb-8 rounded-3xl border bg-secondary/10 p-5">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-primary/60">
-                <CalendarDays className="h-4 w-4" /> Live availability
-              </div>
-              <div className="mt-3 flex items-start gap-3">
-                {checkingAvailability ? <Loader2 className="mt-1 h-5 w-5 animate-spin text-accent" /> : availabilityStatus === 'available' ? <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-600" /> : availabilityStatus === 'unavailable' ? <AlertCircle className="mt-1 h-5 w-5 text-rose-600" /> : <Clock3 className="mt-1 h-5 w-5 text-muted-foreground" />}
-                <div>
-                  <div className="font-semibold text-primary">
-                    {checkingAvailability ? 'Checking dates...' : availabilityStatus === 'available' ? 'Available' : availabilityStatus === 'unavailable' ? 'Unavailable' : 'Waiting for dates'}
+          <aside className="lg:col-span-5">
+            <div className="sticky top-20">
+              <div className="rounded-3xl bg-gradient-to-br from-white/80 to-white/60 border border-secondary/30 shadow-2xl p-6 backdrop-blur-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-muted-foreground">Starting from</div>
+                    <div className="text-3xl font-bold">₹1,500 <span className="text-sm text-muted-foreground">/ night</span></div>
                   </div>
-                  <div className="text-sm text-muted-foreground">{availabilityMessage}</div>
+                  <div className="text-right text-sm">
+                    <div className="font-semibold">Instant request</div>
+                    <div className="text-xs text-muted-foreground">No payment required now</div>
+                  </div>
                 </div>
+
+                <div className="mt-4">
+                  <Calendar
+                    modifiers={{ occupied: occupiedDates }}
+                    onDateSelect={handleCalendarDateSelect}
+                    showSelectedDateInfo={true}
+                    startCollapsed={true}
+                    className="w-full"
+                    maxWidth=""
+                  />
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="col-span-2">
+                    <label className="text-xs font-bold text-primary/70">Guests</label>
+                    <select value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full mt-1 rounded-xl border p-3 text-sm">
+                      <option value="1">1 Guest</option>
+                      <option value="2">2 Guests</option>
+                      <option value="3">3 Guests</option>
+                      <option value="4">4 Guests</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-primary/70">Check-in</label>
+                    <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-primary/70">Check-out</label>
+                    <input value={checkout} onChange={(e) => setCheckout(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="text-xs font-bold text-primary/70">Full name</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} required className="w-full mt-1 p-3 rounded-xl border" />
+                </div>
+                <div className="mt-4">
+                  <label className="text-xs font-bold text-primary/70">Phone</label>
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} required className="w-full mt-1 p-3 rounded-xl border" />
+                </div>
+
+                <div className="mt-5">
+                  <Button type="submit" onClick={(e: any) => submit(e)} className="w-full py-4 bg-gradient-to-r from-accent to-primary text-white rounded-xl shadow-lg" disabled={submitting}>
+                    {submitting ? 'Sending...' : availabilityStatus === 'unavailable' ? 'Choose different dates' : 'Request Booking'}
+                  </Button>
+                </div>
+
+                <div className="mt-4 text-xs text-muted-foreground">
+                  {checkingAvailability ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Checking availability...</span> : <span>{availabilityMessage}</span>}
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-2xl p-4 bg-white/70 border border-secondary/20 shadow">
+                <div className="text-sm font-semibold mb-2">House Rules</div>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>No smoking indoors</li>
+                  <li>Check-in after 2:00 PM, Check-out by 11:00 AM</li>
+                  <li>Quiet hours after 10:00 PM</li>
+                </ul>
               </div>
             </div>
-
-            <form onSubmit={submit} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-primary/70">Full name</label>
-                <input value={name} onChange={(e) => setName(e.target.value)} required className="w-full mt-1 p-3 rounded-2xl border" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-primary/70">Phone</label>
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} required className="w-full mt-1 p-3 rounded-2xl border" />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-primary/70">Check-in</label>
-                  <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-2xl border" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-primary/70">Check-out</label>
-                  <input value={checkout} onChange={(e) => setCheckout(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-2xl border" />
-                </div>
-              </div>
-
-              <div>
-                <Button type="submit" className="w-full py-4 bg-accent text-white" disabled={submitting}>
-                  {submitting ? 'Sending...' : availabilityStatus === 'unavailable' ? 'Choose different dates' : 'Request Booking'}
-                </Button>
-              </div>
-            </form>
-          </div>
+          </aside>
         </div>
       </div>
     </main>

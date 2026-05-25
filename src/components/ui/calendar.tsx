@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type BookingStatus = "occupied" | "reserved" | "requested";
@@ -36,6 +36,8 @@ export interface CalendarProps {
   // compatibility props from previous Calendar/DayPicker API
   mode?: string;
   onDayClick?: (d: Date) => void;
+  /** If provided, controls the initial collapsed state. If undefined, reads localStorage 'calendar-collapsed'. */
+  startCollapsed?: boolean;
 }
 
 function datesEqual(a?: Date | null, b?: Date | null) {
@@ -55,6 +57,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   modifiers,
   modifiersClassNames,
   onDayClick,
+  startCollapsed,
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(month ?? initialDate);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -142,12 +145,37 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const getModifierClass = (d: CalendarDay) => {
     if (!d.modifiers) return "";
-    if (d.modifiers.reserved) return modifiersClassNames?.reserved ?? "bg-emerald-100 text-emerald-900 rounded-full";
+    if (d.modifiers.reserved) return modifiersClassNames?.reserved ?? "bg-rose-600 text-white rounded-full";
     if (d.modifiers.requested) return modifiersClassNames?.requested ?? "bg-amber-100 text-amber-900 rounded-full";
-    if (d.modifiers.occupied) return modifiersClassNames?.occupied ?? "bg-rose-100 text-rose-900 rounded-full";
+    if (d.modifiers.occupied) return modifiersClassNames?.occupied ?? "bg-rose-600 text-white rounded-full";
     if (d.modifiers.selectedDay) return modifiersClassNames?.selectedDay ?? "ring-2 ring-primary ring-offset-2 ring-offset-white rounded-full";
     return "";
   };
+
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      if (typeof (startCollapsed as any) !== 'undefined') return startCollapsed as boolean;
+    } catch (e) {
+      // ignore
+    }
+
+    try {
+      const v = typeof window !== 'undefined' ? window.localStorage.getItem('calendar-collapsed') : null;
+      return v === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('calendar-collapsed', collapsed ? 'true' : 'false');
+      }
+    } catch (e) {
+      // ignore
+    }
+  }, [collapsed]);
 
   return (
     <motion.div
@@ -156,55 +184,96 @@ export const Calendar: React.FC<CalendarProps> = ({
       transition={{ duration: 0.35 }}
       className={cn("bg-white rounded-2xl shadow-sm p-3 sm:p-6 w-full", maxWidth, className)}
     >
-      {/* Header */}
-      <motion.div initial={{ y: -6 }} animate={{ y: 0 }} className="flex items-center justify-between mb-4 sm:mb-6">
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-        </motion.button>
-
-        <motion.h1 key={currentDate.getMonth()} className="text-base font-semibold text-primary sm:text-lg">
-          {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-        </motion.h1>
-
-        <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-        </motion.button>
-      </motion.div>
-
-      {/* Weekdays */}
-      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2 sm:mb-3">
-        {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-          <div key={day} className="py-1 text-center text-[0.65rem] font-medium text-muted-foreground sm:text-xs">
-            {day}
+      {/* Availability header */}
+      <button
+        type="button"
+        onClick={() => setCollapsed((c) => !c)}
+        className="mb-4 flex w-full items-center justify-between rounded-2xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-left"
+      >
+        <div>
+          <div className="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary/50">
+            Availability
           </div>
-        ))}
-      </div>
+          <div className="text-sm text-muted-foreground">
+            {collapsed ? 'Tap to view the calendar and reserved days' : 'Tap to collapse the calendar'}
+          </div>
+        </div>
+        <ChevronDown className={`h-5 w-5 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+      </button>
 
-      {/* Days */}
-      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
-        <AnimatePresence mode="popLayout">
-          {days.map((day, idx) => (
-            <motion.button
-              key={`${day.date.toDateString()}-${idx}`}
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={() => handleDateClick(day.date)}
-              className={cn(
-                "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
-                day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
-                day.isToday ? "bg-secondary text-primary font-semibold" : "",
-                day.isSelected && !day.isToday ? "bg-primary/10 text-primary font-semibold" : "",
-                getModifierClass(day)
-              )}
-            >
-              {day.date.getDate()}
-            </motion.button>
-          ))}
-        </AnimatePresence>
-      </div>
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
+            {/* Header */}
+            <motion.div initial={{ y: -6 }} animate={{ y: 0 }} className="mb-4 flex items-center justify-between sm:mb-6">
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={prevMonth} className="rounded-full p-2 transition-colors hover:bg-gray-100">
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </motion.button>
+
+              <motion.h1 key={currentDate.getMonth()} className="text-base font-semibold text-primary sm:text-lg">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </motion.h1>
+
+              <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={nextMonth} className="rounded-full p-2 transition-colors hover:bg-gray-100">
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              </motion.button>
+            </motion.div>
+
+            {/* Weekdays */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2 sm:mb-3">
+              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                <div key={day} className="py-1 text-center text-[0.65rem] font-medium text-muted-foreground sm:text-xs">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Days */}
+            <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
+              <AnimatePresence mode="popLayout">
+                {days.map((day, idx) => {
+                  const isDisabled = !!day.modifiers?.occupied || !!day.modifiers?.reserved;
+                  return (
+                    <motion.button
+                      key={`${day.date.toDateString()}-${idx}`}
+                      initial={{ opacity: 0, scale: 0.98 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.98 }}
+                      whileHover={{ scale: isDisabled ? 1 : 1.03 }}
+                      whileTap={{ scale: isDisabled ? 1 : 0.96 }}
+                      onClick={() => !isDisabled && handleDateClick(day.date)}
+                      disabled={isDisabled}
+                      className={cn(
+                        "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
+                        day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
+                        day.isToday ? "bg-secondary text-primary font-semibold" : "",
+                        day.isSelected && !day.isToday ? "bg-primary/10 text-primary font-semibold" : "",
+                        getModifierClass(day),
+                        isDisabled ? 'opacity-70 cursor-not-allowed' : ''
+                      )}
+                    >
+                      {day.date.getDate()}
+                    </motion.button>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!collapsed && (
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full bg-rose-600" />
+            <span>Unavailable / Reserved</span>
+          </span>
+          <span className="inline-flex items-center gap-2">
+            <span className="inline-block h-3 w-3 rounded-full border border-emerald-600 bg-emerald-100" />
+            <span>Requested</span>
+          </span>
+        </div>
+      )}
 
       {showSelectedDateInfo && selectedDate && (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-3 bg-gray-50 rounded-md text-sm text-muted-foreground">
