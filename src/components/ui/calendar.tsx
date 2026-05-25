@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 
 type BookingStatus = "occupied" | "reserved" | "requested";
@@ -35,6 +35,8 @@ export interface CalendarProps {
   };
   modifiersClassNames?: Record<string, string>;
   dayAvailabilityCounts?: Record<string, number>;
+  showDayAvailabilityCounts?: boolean;
+  colorByAvailability?: boolean;
   // compatibility props from previous Calendar/DayPicker API
   mode?: string;
   onDayClick?: (d: Date) => void;
@@ -42,6 +44,7 @@ export interface CalendarProps {
   startCollapsed?: boolean;
   collapsible?: boolean;
   disableBookedDates?: boolean;
+  disablePastDates?: boolean;
 }
 
 function datesEqual(a?: Date | null, b?: Date | null) {
@@ -61,10 +64,13 @@ export const Calendar: React.FC<CalendarProps> = ({
   modifiers,
   modifiersClassNames,
   dayAvailabilityCounts,
+  showDayAvailabilityCounts = false,
+  colorByAvailability = false,
   onDayClick,
   startCollapsed,
   collapsible = true,
   disableBookedDates = true,
+  disablePastDates = false,
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(month ?? initialDate);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -238,7 +244,8 @@ export const Calendar: React.FC<CalendarProps> = ({
                   const isFullyBooked = typeof availabilityCount === 'number'
                     ? availabilityCount <= 0
                     : !!day.modifiers?.occupied || !!day.modifiers?.reserved;
-                  const isDisabled = disableBookedDates && isFullyBooked;
+                  const isPastDate = disablePastDates && isBefore(day.date, startOfDay(new Date()));
+                  const isDisabled = isPastDate || (disableBookedDates && isFullyBooked);
                   return (
                     <motion.button
                       key={`${day.date.toDateString()}-${idx}`}
@@ -252,9 +259,11 @@ export const Calendar: React.FC<CalendarProps> = ({
                       className={cn(
                         "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
                         day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
-                        typeof availabilityCount === 'number' && availabilityCount <= 0 ? 'bg-rose-500/10 text-rose-700' : '',
-                        typeof availabilityCount === 'number' && availabilityCount > 0 && availabilityCount <= 2 ? 'bg-amber-500/10 text-amber-700' : '',
-                        typeof availabilityCount === 'number' && availabilityCount > 2 ? 'bg-emerald-500/10 text-emerald-700' : '',
+                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount <= 0 ? 'bg-rose-500/15 text-rose-800' : '',
+                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount === 1 ? 'bg-orange-500/15 text-orange-800' : '',
+                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount === 2 ? 'bg-amber-500/15 text-amber-800' : '',
+                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount >= 3 ? 'bg-emerald-500/15 text-emerald-800' : '',
+                        isPastDate ? 'bg-slate-300 text-slate-700 cursor-not-allowed opacity-85' : '',
                         day.isToday ? "ring-2 ring-primary/15" : "",
                         day.isSelected && !day.isToday ? "bg-primary/10 text-primary font-semibold" : "",
                         getModifierClass(day),
@@ -262,7 +271,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                       )}
                     >
                       <span className="block text-[0.95em] font-semibold leading-none">{day.date.getDate()}</span>
-                      {typeof availabilityCount === 'number' ? (
+                      {showDayAvailabilityCounts && typeof availabilityCount === 'number' ? (
                         <span className={cn(
                           'mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.15em]',
                           availabilityCount <= 0 ? 'bg-rose-500/10 text-rose-700' : availabilityCount <= 2 ? 'bg-amber-500/10 text-amber-700' : 'bg-emerald-500/10 text-emerald-700'

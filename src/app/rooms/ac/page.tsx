@@ -63,7 +63,7 @@ export default function ACPage() {
         const data = await response.json();
         if (data.available) {
           setAvailabilityStatus('available');
-          setAvailabilityMessage(`${data.availableRooms} room${data.availableRooms === 1 ? '' : 's'} available for the selected dates.`);
+          setAvailabilityMessage(`Hurry! Only ${data.availableRooms} room${data.availableRooms === 1 ? '' : 's'} left 🔥`);
         } else {
           setAvailabilityStatus('unavailable');
           setAvailabilityMessage(`Not available for the selected dates. ${data.availableRooms ?? 0} room${(data.availableRooms ?? 0) === 1 ? '' : 's'} available.`);
@@ -124,7 +124,7 @@ export default function ACPage() {
     const clicked = format(d, 'yyyy-MM-dd');
     if (!checkin) {
       setCheckin(clicked);
-      setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
+      setAvailabilityMessage(`Hurry! Only ${availableRooms} room${availableRooms === 1 ? '' : 's'} left 🔥`);
       return;
     }
 
@@ -132,7 +132,7 @@ export default function ACPage() {
       // if clicked is before checkin, treat as new checkin
       if (isBefore(parseISO(clicked), parseISO(checkin))) {
         setCheckin(clicked);
-        setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
+        setAvailabilityMessage(`Hurry! Only ${availableRooms} room${availableRooms === 1 ? '' : 's'} left 🔥`);
         return;
       }
 
@@ -143,7 +143,7 @@ export default function ACPage() {
     // both set -> start new range
     setCheckin(clicked);
     setCheckout('');
-    setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
+    setAvailabilityMessage(`Hurry! Only ${availableRooms} room${availableRooms === 1 ? '' : 's'} left 🔥`);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -230,16 +230,23 @@ export default function ACPage() {
                 </div>
 
                 <div className="mt-4">
+                  {(checkin || checkout) && (
+                    <div className={`mb-3 rounded-2xl border px-4 py-3 text-xl leading-tight font-bold font-headline md:text-2xl ${availabilityStatus === 'unavailable' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+                      {availabilityMessage}
+                    </div>
+                  )}
                   <Calendar
                     month={calendarMonth}
                     onMonthChange={setCalendarMonth}
-                    dayAvailabilityCounts={availabilityCounts}
-                    modifiers={{}}
+                    modifiers={{ occupied: Object.entries(availabilityCounts).filter(([, count]) => count <= 0).map(([key]) => parseISO(key)) }}
                     onDateSelect={handleCalendarDateSelect}
                     showSelectedDateInfo={true}
+                    colorByAvailability={true}
                     startCollapsed={true}
                     className="w-full"
                     maxWidth=""
+                    disablePastDates={true}
+                    dayAvailabilityCounts={availabilityCounts}
                   />
                 </div>
 
@@ -279,8 +286,8 @@ export default function ACPage() {
                   </Button>
                 </div>
 
-                <div className="mt-4 text-xs text-muted-foreground">
-                  {checkingAvailability ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Checking availability...</span> : <span>{availabilityMessage}</span>}
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {checkingAvailability ? <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Checking availability...</span> : <span className={availabilityMessage.startsWith('Hurry!') ? 'font-headline text-xl font-bold text-amber-800 md:text-2xl' : ''}>{availabilityMessage}</span>}
                 </div>
               </div>
 

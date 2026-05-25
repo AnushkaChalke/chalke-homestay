@@ -556,6 +556,7 @@ export default function BookingAdminDashboard() {
                     collapsible={false}
                     disableBookedDates={false}
                     dayAvailabilityCounts={calendarAvailabilityCounts}
+                    showDayAvailabilityCounts={true}
                     modifiers={{
                       occupied: occupiedDates,
                       reserved: reservedDates,
