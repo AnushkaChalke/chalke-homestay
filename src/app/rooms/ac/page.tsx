@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import Calendar from '@/components/ui/calendar';
 import type { BookingRecord } from '@/lib/bookings';
 import { getAvailableRoomCountOnDate, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
-import { format, isBefore, parseISO, startOfMonth } from 'date-fns';
+import { addDays, format, isBefore, isEqual, parseISO, startOfDay, startOfMonth } from 'date-fns';
 
 export default function ACPage() {
   const { toast } = useToast();
@@ -111,6 +111,23 @@ export default function ACPage() {
     () => getAvailabilityCountsForMonth(bookings, calendarMonth, 3, 'AC 1BHK Premium'),
     [bookings, calendarMonth],
   );
+
+  const selectedRangeDates = useMemo(() => {
+    if (!checkin) return [] as Date[];
+
+    const start = startOfDay(parseISO(checkin));
+    if (!checkout) return [start];
+
+    const end = startOfDay(parseISO(checkout));
+    if (isBefore(end, start)) return [start];
+
+    const dates: Date[] = [];
+    for (let current = start; isBefore(current, end) || isEqual(current, end); current = addDays(current, 1)) {
+      dates.push(current);
+    }
+
+    return dates;
+  }, [checkin, checkout]);
 
   const handleCalendarDateSelect = (d: Date) => {
     const availableRooms = getAvailableRoomCountOnDate(bookings, d, 'AC 1BHK Premium');
@@ -238,7 +255,13 @@ export default function ACPage() {
                   <Calendar
                     month={calendarMonth}
                     onMonthChange={setCalendarMonth}
-                    modifiers={{ occupied: Object.entries(availabilityCounts).filter(([, count]) => count <= 0).map(([key]) => parseISO(key)) }}
+                    modifiers={{
+                      occupied: Object.entries(availabilityCounts).filter(([, count]) => count <= 0).map(([key]) => parseISO(key)),
+                      selectedDay: selectedRangeDates,
+                    }}
+                    modifiersClassNames={{
+                      selectedDay: 'bg-black/55 text-white rounded-md',
+                    }}
                     onDateSelect={handleCalendarDateSelect}
                     showSelectedDateInfo={true}
                     colorByAvailability={true}
