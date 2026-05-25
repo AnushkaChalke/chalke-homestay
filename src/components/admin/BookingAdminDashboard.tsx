@@ -23,7 +23,7 @@ import {
 
 const statusStyles: Record<BookingRecord['status'], string> = {
   requested: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
-  reserved: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
+  reserved: 'bg-rose-500/10 text-rose-700 border-rose-500/20',
   cancelled: 'bg-rose-500/10 text-rose-700 border-rose-500/20',
 };
 
@@ -290,9 +290,8 @@ export default function BookingAdminDashboard() {
               <p className="mt-1 text-sm text-muted-foreground">Blocked dates are marked by booking status so you can see the month at a glance.</p>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.2em]">
-              <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-700"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Reserved</span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-rose-700"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Reserved</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-amber-700"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Requested</span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-rose-700"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Unavailable</span>
             </div>
           </div>
 
@@ -367,7 +366,7 @@ export default function BookingAdminDashboard() {
                     }}
                     modifiersClassNames={{
                       occupied: 'bg-rose-100 text-rose-900 rounded-full',
-                      reserved: 'bg-emerald-100 text-emerald-900 rounded-full',
+                      reserved: 'bg-rose-100 text-rose-900 rounded-full',
                       requested: 'bg-amber-100 text-amber-900 rounded-full',
                       selectedDay: 'ring-2 ring-primary ring-offset-2 ring-offset-white rounded-full',
                     }}
