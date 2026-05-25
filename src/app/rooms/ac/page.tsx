@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, ArrowLeft, ArrowRight, Bed, CalendarDays, Car, CheckCircle2, Clock3, Droplet, Loader2, Thermometer, Wifi, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Calendar from '@/components/ui/calendar';
-import { expandBookingDates } from '@/lib/booking-calendar';
-import { format, isBefore, parseISO } from 'date-fns';
+import type { BookingRecord } from '@/lib/bookings';
+import { getAvailableRoomCountOnDate, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
+import { format, isBefore, parseISO, startOfMonth } from 'date-fns';
 
 export default function ACPage() {
   const { toast } = useToast();
@@ -30,7 +31,8 @@ export default function ACPage() {
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'available' | 'unavailable' | 'error'>('idle');
   const [availabilityMessage, setAvailabilityMessage] = useState('Select dates to check availability.');
-  const [occupiedDates, setOccupiedDates] = useState<Date[]>([]);
+  const [bookings, setBookings] = useState<BookingRecord[]>([]);
+  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
@@ -61,10 +63,10 @@ export default function ACPage() {
         const data = await response.json();
         if (data.available) {
           setAvailabilityStatus('available');
-          setAvailabilityMessage('Available for the selected dates.');
+          setAvailabilityMessage(`${data.availableRooms} room${data.availableRooms === 1 ? '' : 's'} available for the selected dates.`);
         } else {
           setAvailabilityStatus('unavailable');
-          setAvailabilityMessage(`Not available for the selected dates. ${data.conflicts?.length ? `${data.conflicts.length} booking${data.conflicts.length === 1 ? '' : 's'} overlap.` : ''}`);
+          setAvailabilityMessage(`Not available for the selected dates. ${data.availableRooms ?? 0} room${(data.availableRooms ?? 0) === 1 ? '' : 's'} available.`);
         }
       } catch (error) {
         if (!controller.signal.aborted) {
@@ -85,7 +87,7 @@ export default function ACPage() {
   }, [checkin, checkout]);
 
   useEffect(() => {
-    // load upcoming bookings to mark occupied dates on the calendar
+    // load upcoming bookings to calculate room availability by day
     let mounted = true;
 
     (async () => {
@@ -94,21 +96,7 @@ export default function ACPage() {
         const res = await fetch(`/api/availability?${params.toString()}`, { cache: 'no-store' });
         if (!res.ok) return;
         const data = await res.json();
-        const bookings = data.upcomingBookings ?? [];
-
-        const allDates: string[] = [];
-        bookings.forEach((b: any) => {
-          try {
-            const dates = expandBookingDates(b);
-            dates.forEach((d) => allDates.push(format(d, 'yyyy-MM-dd')));
-          } catch (e) {
-            // ignore
-          }
-        });
-
-        // dedupe and set Date objects
-        const unique = Array.from(new Set(allDates)).map((s) => parseISO(s));
-        if (mounted) setOccupiedDates(unique);
+        if (mounted) setBookings((data.upcomingBookings ?? []) as BookingRecord[]);
       } catch (e) {
         // ignore
       }
@@ -119,21 +107,24 @@ export default function ACPage() {
     };
   }, []);
 
-  function isDateOccupied(d: Date) {
-    return occupiedDates.some((od) => format(od, 'yyyy-MM-dd') === format(d, 'yyyy-MM-dd'));
-  }
+  const availabilityCounts = useMemo(
+    () => getAvailabilityCountsForMonth(bookings, calendarMonth, 3, 'AC 1BHK Premium'),
+    [bookings, calendarMonth],
+  );
 
   const handleCalendarDateSelect = (d: Date) => {
-    if (isDateOccupied(d)) {
+    const availableRooms = getAvailableRoomCountOnDate(bookings, d, 'AC 1BHK Premium');
+
+    if (availableRooms <= 0) {
       setAvailabilityStatus('unavailable');
-      setAvailabilityMessage('Selected date is already booked.');
+      setAvailabilityMessage('Selected date is fully booked.');
       return;
     }
 
     const clicked = format(d, 'yyyy-MM-dd');
     if (!checkin) {
       setCheckin(clicked);
-      setAvailabilityMessage('Select check-out date.');
+      setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
       return;
     }
 
@@ -141,7 +132,7 @@ export default function ACPage() {
       // if clicked is before checkin, treat as new checkin
       if (isBefore(parseISO(clicked), parseISO(checkin))) {
         setCheckin(clicked);
-        setAvailabilityMessage('Select check-out date.');
+        setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
         return;
       }
 
@@ -152,7 +143,7 @@ export default function ACPage() {
     // both set -> start new range
     setCheckin(clicked);
     setCheckout('');
-    setAvailabilityMessage('Select check-out date.');
+    setAvailabilityMessage(`${availableRooms} room${availableRooms === 1 ? '' : 's'} available on this date. Select check-out date.`);
   };
 
   const submit = async (e: React.FormEvent) => {
@@ -240,7 +231,10 @@ export default function ACPage() {
 
                 <div className="mt-4">
                   <Calendar
-                    modifiers={{ occupied: occupiedDates }}
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    dayAvailabilityCounts={availabilityCounts}
+                    modifiers={{}}
                     onDateSelect={handleCalendarDateSelect}
                     showSelectedDateInfo={true}
                     startCollapsed={true}

@@ -34,6 +34,7 @@ export interface CalendarProps {
     selectedDay?: Date[];
   };
   modifiersClassNames?: Record<string, string>;
+  dayAvailabilityCounts?: Record<string, number>;
   // compatibility props from previous Calendar/DayPicker API
   mode?: string;
   onDayClick?: (d: Date) => void;
@@ -59,6 +60,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   selected,
   modifiers,
   modifiersClassNames,
+  dayAvailabilityCounts,
   onDayClick,
   startCollapsed,
   collapsible = true,
@@ -231,7 +233,12 @@ export const Calendar: React.FC<CalendarProps> = ({
             <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
               <AnimatePresence mode="popLayout">
                 {days.map((day, idx) => {
-                  const isDisabled = disableBookedDates && (!!day.modifiers?.occupied || !!day.modifiers?.reserved);
+                  const dayKey = format(day.date, 'yyyy-MM-dd');
+                  const availabilityCount = dayAvailabilityCounts?.[dayKey];
+                  const isFullyBooked = typeof availabilityCount === 'number'
+                    ? availabilityCount <= 0
+                    : !!day.modifiers?.occupied || !!day.modifiers?.reserved;
+                  const isDisabled = disableBookedDates && isFullyBooked;
                   return (
                     <motion.button
                       key={`${day.date.toDateString()}-${idx}`}
@@ -245,13 +252,24 @@ export const Calendar: React.FC<CalendarProps> = ({
                       className={cn(
                         "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
                         day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
-                        day.isToday ? "bg-secondary text-primary font-semibold" : "",
+                        typeof availabilityCount === 'number' && availabilityCount <= 0 ? 'bg-rose-500/10 text-rose-700' : '',
+                        typeof availabilityCount === 'number' && availabilityCount > 0 && availabilityCount <= 2 ? 'bg-amber-500/10 text-amber-700' : '',
+                        typeof availabilityCount === 'number' && availabilityCount > 2 ? 'bg-emerald-500/10 text-emerald-700' : '',
+                        day.isToday ? "ring-2 ring-primary/15" : "",
                         day.isSelected && !day.isToday ? "bg-primary/10 text-primary font-semibold" : "",
                         getModifierClass(day),
                         isDisabled ? 'opacity-70 cursor-not-allowed' : ''
                       )}
                     >
-                      {day.date.getDate()}
+                      <span className="block text-[0.95em] font-semibold leading-none">{day.date.getDate()}</span>
+                      {typeof availabilityCount === 'number' ? (
+                        <span className={cn(
+                          'mt-1 inline-flex rounded-full px-1.5 py-0.5 text-[0.55rem] font-semibold uppercase tracking-[0.15em]',
+                          availabilityCount <= 0 ? 'bg-rose-500/10 text-rose-700' : availabilityCount <= 2 ? 'bg-amber-500/10 text-amber-700' : 'bg-emerald-500/10 text-emerald-700'
+                        )}>
+                          {availabilityCount <= 0 ? 'Full' : `${availabilityCount} left`}
+                        </span>
+                      ) : null}
                     </motion.button>
                   );
                 })}

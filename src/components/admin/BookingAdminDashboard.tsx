@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import type { BookingRecord } from '@/lib/bookings';
-import { bookingOccupiesDate, bookingOverlapsRange, expandBookingDates } from '@/lib/booking-calendar';
+import { TOTAL_ROOM_CAPACITY, bookingOccupiesDate, bookingOverlapsRange, expandBookingDates, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -131,6 +131,11 @@ export default function BookingAdminDashboard() {
         }),
       })),
     [bookings, selectedDate],
+  );
+
+  const calendarAvailabilityCounts = useMemo(
+    () => getAvailabilityCountsForMonth(bookings, calendarMonth, TOTAL_ROOM_CAPACITY),
+    [bookings, calendarMonth],
   );
 
   const calendarDays = useMemo(
@@ -550,6 +555,7 @@ export default function BookingAdminDashboard() {
                     onDayClick={setSelectedDate}
                     collapsible={false}
                     disableBookedDates={false}
+                    dayAvailabilityCounts={calendarAvailabilityCounts}
                     modifiers={{
                       occupied: occupiedDates,
                       reserved: reservedDates,
