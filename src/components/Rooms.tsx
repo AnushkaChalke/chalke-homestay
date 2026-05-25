@@ -119,7 +119,7 @@ const Rooms = () => {
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                           </Button>
                         ) : (
-                        <Button className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
+                        <Button onClick={() => router.push('/rooms/non-ac')} className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
                           Book Stay
                           <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
