@@ -12,8 +12,6 @@ export default function ACPage() {
   const { toast } = useToast();
   const images = [
     'bedroom.jpeg',
-    'bedroom 2.jpeg',
-    'bedroom 3.jpeg',
     'hall.jpeg',
     'hall 2.jpeg',
     'kitchen.jpeg',

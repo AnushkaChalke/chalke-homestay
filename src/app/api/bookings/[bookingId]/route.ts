@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { bookingUpdateSchema, updateBooking } from '@/lib/bookings';
+import { bookingUpdateSchema, deleteBooking, updateBooking } from '@/lib/bookings';
 import { cookies } from 'next/headers';
 import { ADMIN_SESSION_COOKIE, isAdminSessionToken } from '@/lib/admin-auth';
 
@@ -34,4 +34,21 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
 
   return NextResponse.json({ booking });
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const { bookingId } = await context.params;
+  const sessionCookie = (await cookies()).get(ADMIN_SESSION_COOKIE)?.value;
+
+  if (!isAdminSessionToken(sessionCookie)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const deleted = await deleteBooking(bookingId);
+
+  if (!deleted) {
+    return NextResponse.json({ error: 'Booking not found' }, { status: 404 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState, useTransition } from 'react';
-import { addDays, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, startOfMonth, startOfWeek } from 'date-fns';
+import { addDays, endOfMonth, endOfWeek, format, isSameDay, isSameMonth, parseISO, startOfMonth, startOfWeek } from 'date-fns';
 import { AlertCircle, CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Clock3, Loader2, LogOut, RefreshCcw, ShieldCheck, DatabaseZap, TriangleAlert } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,26 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import type { BookingRecord } from '@/lib/bookings';
 import { bookingOccupiesDate, expandBookingDates, getDateKey } from '@/lib/booking-calendar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const statusStyles: Record<BookingRecord['status'], string> = {
   requested: 'bg-amber-500/10 text-amber-700 border-amber-500/20',
   reserved: 'bg-emerald-500/10 text-emerald-700 border-emerald-500/20',
   cancelled: 'bg-rose-500/10 text-rose-700 border-rose-500/20',
 };
+
+const displayDate = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
+const displayDateTime = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
 
 export default function BookingAdminDashboard() {
   const router = useRouter();
@@ -140,6 +154,68 @@ export default function BookingAdminDashboard() {
     });
   };
 
+  const deleteBooking = (bookingId: string) => {
+    startTransition(async () => {
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.status === 401) {
+        toast({ title: 'Session expired', description: 'Please sign in again.' });
+        router.refresh();
+        return;
+      }
+
+      if (!response.ok) {
+        toast({ title: 'Delete failed', description: 'The booking could not be deleted.' });
+        return;
+      }
+
+      setBookings((current) => current.filter((booking) => booking.id !== bookingId));
+      toast({ title: 'Booking deleted', description: 'The booking was removed permanently.' });
+    });
+  };
+
+  const bookingActionControls = (booking: BookingRecord) => (
+    <div className="flex flex-wrap justify-end gap-2">
+      {booking.status === 'requested' ? (
+        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking.id, 'reserved')} disabled={isPending}>
+          Accept
+        </Button>
+      ) : null}
+      {booking.status === 'requested' || booking.status === 'reserved' ? (
+        <Button size="sm" variant="destructive" className="rounded-full" onClick={() => updateStatus(booking.id, 'cancelled')} disabled={isPending}>
+          Cancel
+        </Button>
+      ) : booking.status === 'cancelled' ? (
+        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking.id, 'requested')} disabled={isPending}>
+          Revive
+        </Button>
+      ) : null}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button size="sm" variant="outline" className="rounded-full border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800" disabled={isPending}>
+            Delete
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete booking?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the booking for {booking.guestName}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep booking</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteBooking(booking.id)} className="bg-rose-600 text-white hover:bg-rose-700">
+              Delete booking
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+
   const logout = () => {
     startTransition(async () => {
       await fetch('/api/admin/logout', { method: 'POST' });
@@ -225,7 +301,7 @@ export default function BookingAdminDashboard() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary/50 sm:text-xs sm:tracking-[0.3em]">Selected day</div>
-                    <h3 className="mt-1 text-base font-bold text-primary sm:text-xl">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
+                    <h3 className="mt-1 text-base font-bold text-primary sm:text-xl">{format(selectedDate, 'dd-MM-yyyy')}</h3>
                   </div>
                   <div className="text-right text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground sm:text-xs sm:tracking-[0.2em]">
                     <div>{format(calendarMonth, 'MMMM yyyy')}</div>
@@ -282,6 +358,7 @@ export default function BookingAdminDashboard() {
                     onMonthChange={setCalendarMonth}
                     selected={selectedDate}
                     onDayClick={setSelectedDate}
+                    collapsible={false}
                     modifiers={{
                       occupied: occupiedDates,
                       reserved: reservedDates,
@@ -332,7 +409,7 @@ export default function BookingAdminDashboard() {
                     <div className="rounded-xl bg-secondary/20 px-3 py-2 text-primary">
                       <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Stay</div>
                       <div className="mt-1 font-medium">{booking.roomType}</div>
-                      <div className="text-sm text-muted-foreground">{booking.checkIn} → {booking.checkOut}</div>
+                      <div className="text-sm text-muted-foreground">{displayDate(booking.checkIn)} → {displayDate(booking.checkOut)}</div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="rounded-xl bg-muted/40 px-3 py-2">
@@ -345,23 +422,15 @@ export default function BookingAdminDashboard() {
                       </div>
                     </div>
                     <div className="rounded-xl bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                      <div>Created: {new Date(booking.createdAt).toLocaleString()}</div>
-                      <div className="mt-1">Updated: {new Date(booking.updatedAt).toLocaleString()}</div>
+                      <div>Created: {displayDateTime(booking.createdAt)}</div>
+                      <div className="mt-1">Updated: {displayDateTime(booking.updatedAt)}</div>
                     </div>
                     {booking.reservedRoom ? <div className="rounded-xl bg-secondary/30 px-3 py-2 text-sm text-primary">Room: {booking.reservedRoom}</div> : null}
                     {booking.adminNote ? <div className="rounded-xl bg-secondary/20 px-3 py-2 text-sm text-primary">{booking.adminNote}</div> : null}
                   </div>
 
                   <div className="mt-4 grid grid-cols-3 gap-2">
-                    <Button size="sm" variant="outline" className="w-full rounded-full px-2 text-xs" onClick={() => updateStatus(booking.id, 'requested')} disabled={isPending}>
-                      Request
-                    </Button>
-                    <Button size="sm" className="w-full rounded-full px-2 text-xs bg-primary" onClick={() => updateStatus(booking.id, 'reserved')} disabled={isPending}>
-                      Reserve
-                    </Button>
-                    <Button size="sm" variant="destructive" className="w-full rounded-full px-2 text-xs" onClick={() => updateStatus(booking.id, 'cancelled')} disabled={isPending}>
-                      Cancel
-                    </Button>
+                    <div className="col-span-3">{bookingActionControls(booking)}</div>
                   </div>
                 </div>
               ))}
@@ -388,12 +457,12 @@ export default function BookingAdminDashboard() {
                     </td>
                     <td className="px-6 py-5 text-sm text-primary">
                       <div className="font-medium">{booking.roomType}</div>
-                      <div className="mt-2 text-muted-foreground">{booking.checkIn} → {booking.checkOut}</div>
+                      <div className="mt-2 text-muted-foreground">{displayDate(booking.checkIn)} → {displayDate(booking.checkOut)}</div>
                     </td>
                     <td className="px-6 py-5 text-sm text-muted-foreground">
                       <div>Guests: {booking.guests}</div>
-                      <div className="mt-2">Created: {new Date(booking.createdAt).toLocaleString()}</div>
-                      <div className="mt-2">Updated: {new Date(booking.updatedAt).toLocaleString()}</div>
+                      <div className="mt-2">Created: {displayDateTime(booking.createdAt)}</div>
+                      <div className="mt-2">Updated: {displayDateTime(booking.updatedAt)}</div>
                       {booking.reservedRoom ? <div className="mt-2 text-primary">Room: {booking.reservedRoom}</div> : null}
                       {booking.adminNote ? <div className="mt-2 rounded-2xl bg-secondary/30 p-3 text-primary">{booking.adminNote}</div> : null}
                     </td>
@@ -403,17 +472,7 @@ export default function BookingAdminDashboard() {
                       </span>
                     </td>
                     <td className="px-6 py-5 text-right">
-                      <div className="flex flex-wrap justify-end gap-2">
-                        <Button size="sm" variant="outline" className="rounded-full" onClick={() => updateStatus(booking.id, 'requested')} disabled={isPending}>
-                          Request
-                        </Button>
-                        <Button size="sm" className="rounded-full bg-primary" onClick={() => updateStatus(booking.id, 'reserved')} disabled={isPending}>
-                          Reserve
-                        </Button>
-                        <Button size="sm" variant="destructive" className="rounded-full" onClick={() => updateStatus(booking.id, 'cancelled')} disabled={isPending}>
-                          Cancel
-                        </Button>
-                      </div>
+                      {bookingActionControls(booking)}
                     </td>
                   </tr>
                 ))}

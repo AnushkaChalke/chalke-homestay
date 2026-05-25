@@ -127,3 +127,17 @@ export async function updateBooking(id: string, update: z.infer<typeof bookingUp
 
   return toBookingRecord(refreshed.id, refreshed.data() ?? {});
 }
+
+export async function deleteBooking(id: string) {
+  assertFirestoreConfigured();
+  const firestore = getFirestoreClient();
+  const docRef = firestore.collection('bookings').doc(id);
+  const existing = await docRef.get();
+
+  if (!existing.exists) {
+    return false;
+  }
+
+  await docRef.delete();
+  return true;
+}

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
+import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 type BookingStatus = "occupied" | "reserved" | "requested";
@@ -38,6 +39,7 @@ export interface CalendarProps {
   onDayClick?: (d: Date) => void;
   /** If provided, controls the initial collapsed state. If undefined, reads localStorage 'calendar-collapsed'. */
   startCollapsed?: boolean;
+  collapsible?: boolean;
 }
 
 function datesEqual(a?: Date | null, b?: Date | null) {
@@ -58,6 +60,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   modifiersClassNames,
   onDayClick,
   startCollapsed,
+  collapsible = true,
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(month ?? initialDate);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -184,25 +187,19 @@ export const Calendar: React.FC<CalendarProps> = ({
       transition={{ duration: 0.35 }}
       className={cn("bg-white rounded-2xl shadow-sm p-3 sm:p-6 w-full", maxWidth, className)}
     >
-      {/* Availability header */}
-      <button
-        type="button"
-        onClick={() => setCollapsed((c) => !c)}
-        className="mb-4 flex w-full items-center justify-between rounded-2xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-left"
-      >
-        <div>
-          <div className="text-[0.65rem] font-bold uppercase tracking-[0.3em] text-primary/50">
-            Availability
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {collapsed ? 'Tap to view the calendar and reserved days' : 'Tap to collapse the calendar'}
-          </div>
-        </div>
-        <ChevronDown className={`h-5 w-5 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
-      </button>
+      {collapsible ? (
+        <button
+          type="button"
+          onClick={() => setCollapsed((c) => !c)}
+          className="mb-4 flex w-full items-center justify-between rounded-2xl border border-secondary/30 bg-secondary/10 px-4 py-3 text-left"
+        >
+          <div className="text-sm font-semibold text-primary">Check Availability</div>
+          <ChevronDown className={`h-5 w-5 transition-transform ${collapsed ? '' : 'rotate-180'}`} />
+        </button>
+      ) : null}
 
       <AnimatePresence>
-        {!collapsed && (
+        {(!collapsible || !collapsed) && (
           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.2 }}>
             {/* Header */}
             <motion.div initial={{ y: -6 }} animate={{ y: 0 }} className="mb-4 flex items-center justify-between sm:mb-6">
@@ -262,7 +259,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         )}
       </AnimatePresence>
 
-      {!collapsed && (
+      {(!collapsible || !collapsed) && (
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-2">
             <span className="inline-block h-3 w-3 rounded-full bg-rose-600" />
@@ -277,7 +274,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
       {showSelectedDateInfo && selectedDate && (
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="mt-4 p-3 bg-gray-50 rounded-md text-sm text-muted-foreground">
-          Selected: {selectedDate.toLocaleDateString()}
+          Selected: {format(selectedDate, 'dd-MM-yyyy')}
         </motion.div>
       )}
     </motion.div>
