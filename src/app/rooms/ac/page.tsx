@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Bed, Wifi, Car, Droplet, Thermometer, Zap } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, Bed, CalendarDays, Car, CheckCircle2, Clock3, Droplet, Loader2, Thermometer, Wifi, Zap } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ACPage() {
@@ -25,14 +25,96 @@ export default function ACPage() {
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [guests, setGuests] = useState('2');
+  const [submitting, setSubmitting] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'available' | 'unavailable' | 'error'>('idle');
+  const [availabilityMessage, setAvailabilityMessage] = useState('Select dates to check availability.');
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
 
-  const submit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!checkin || !checkout) {
+      setAvailabilityStatus('idle');
+      setAvailabilityMessage('Select dates to check availability.');
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setCheckingAvailability(true);
+
+      try {
+        const params = new URLSearchParams({
+          roomType: 'AC 1BHK Premium',
+          checkIn: checkin,
+          checkOut: checkout,
+        });
+        const response = await fetch(`/api/availability?${params.toString()}`, { signal: controller.signal, cache: 'no-store' });
+
+        if (!response.ok) {
+          throw new Error('Availability check failed');
+        }
+
+        const data = await response.json();
+        if (data.available) {
+          setAvailabilityStatus('available');
+          setAvailabilityMessage('Available for the selected dates.');
+        } else {
+          setAvailabilityStatus('unavailable');
+          setAvailabilityMessage(`Not available for the selected dates. ${data.conflicts?.length ? `${data.conflicts.length} booking${data.conflicts.length === 1 ? '' : 's'} overlap.` : ''}`);
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setAvailabilityStatus('error');
+          setAvailabilityMessage(error instanceof Error ? error.message : 'Could not check availability.');
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCheckingAvailability(false);
+        }
+      }
+    }, 350);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [checkin, checkout]);
+
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({ title: 'Booking request sent', description: `Request for ${guests} guest${guests === '1' ? '' : 's'} received. We will contact you shortly.` });
-    setName(''); setPhone(''); setCheckin(''); setCheckout('');
+    setSubmitting(true);
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: name,
+          phone,
+          checkIn: checkin,
+          checkOut: checkout,
+          guests,
+          roomType: 'AC 1BHK Premium',
+          source: 'ac-room-page',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Booking submission failed');
+      }
+
+      toast({ title: 'Booking request sent', description: `Request for ${guests} guest${guests === '1' ? '' : 's'} received. We will contact you shortly.` });
+      setName('');
+      setPhone('');
+      setCheckin('');
+      setCheckout('');
+    } catch {
+      toast({ title: 'Booking could not be sent', description: 'Please try again or contact us directly.' });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -126,6 +208,21 @@ export default function ACPage() {
               </select>
             </div>
 
+            <div className="mb-8 rounded-3xl border bg-secondary/10 p-5">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.3em] text-primary/60">
+                <CalendarDays className="h-4 w-4" /> Live availability
+              </div>
+              <div className="mt-3 flex items-start gap-3">
+                {checkingAvailability ? <Loader2 className="mt-1 h-5 w-5 animate-spin text-accent" /> : availabilityStatus === 'available' ? <CheckCircle2 className="mt-1 h-5 w-5 text-emerald-600" /> : availabilityStatus === 'unavailable' ? <AlertCircle className="mt-1 h-5 w-5 text-rose-600" /> : <Clock3 className="mt-1 h-5 w-5 text-muted-foreground" />}
+                <div>
+                  <div className="font-semibold text-primary">
+                    {checkingAvailability ? 'Checking dates...' : availabilityStatus === 'available' ? 'Available' : availabilityStatus === 'unavailable' ? 'Unavailable' : 'Waiting for dates'}
+                  </div>
+                  <div className="text-sm text-muted-foreground">{availabilityMessage}</div>
+                </div>
+              </div>
+            </div>
+
             <form onSubmit={submit} className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-primary/70">Full name</label>
@@ -147,7 +244,9 @@ export default function ACPage() {
               </div>
 
               <div>
-                <Button type="submit" className="w-full py-4 bg-accent text-white">Request Booking</Button>
+                <Button type="submit" className="w-full py-4 bg-accent text-white" disabled={submitting}>
+                  {submitting ? 'Sending...' : availabilityStatus === 'unavailable' ? 'Choose different dates' : 'Request Booking'}
+                </Button>
               </div>
             </form>
           </div>

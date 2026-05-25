@@ -11,17 +11,43 @@ const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate form submission
-    setTimeout(() => {
+    const formData = new FormData(e.currentTarget);
+
+    try {
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          guestName: String(formData.get('guestName') ?? ''),
+          phone: String(formData.get('phone') ?? ''),
+          checkIn: String(formData.get('checkIn') ?? ''),
+          checkOut: String(formData.get('checkOut') ?? ''),
+          guests: String(formData.get('guests') ?? ''),
+          roomType: String(formData.get('roomType') ?? ''),
+          source: 'contact-form',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Booking inquiry failed');
+      }
+
       setLoading(false);
       toast({
         title: "Booking Inquiry Sent",
         description: "Our team will contact you shortly to confirm availability.",
       });
-    }, 1500);
+      e.currentTarget.reset();
+    } catch {
+      setLoading(false);
+      toast({
+        title: "Booking Inquiry Failed",
+        description: "Please try again or reach us directly by phone or WhatsApp.",
+      });
+    }
   };
 
   return (
@@ -126,27 +152,27 @@ const Contact = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Full Name</label>
-                      <input required type="text" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="John Doe" />
+                      <input name="guestName" required type="text" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="John Doe" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Phone Number</label>
-                      <input required type="tel" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="+91 00000 00000" />
+                      <input name="phone" required type="tel" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="+91 00000 00000" />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Check-in</label>
-                      <input required type="date" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
+                      <input name="checkIn" required type="date" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Check-out</label>
-                      <input required type="date" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
+                      <input name="checkOut" required type="date" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Guests</label>
-                      <select className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm appearance-none">
+                        <select name="guests" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm appearance-none">
                         <option>2 Guests</option>
                         <option>3 Guests</option>
                         <option>4 Guests</option>
@@ -155,7 +181,7 @@ const Contact = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Room Type</label>
-                      <select className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm appearance-none">
+                        <select name="roomType" className="w-full bg-white border border-muted rounded-2xl py-4 px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm appearance-none">
                         <option>AC 1BHK</option>
                         <option>Non-AC 1BHK</option>
                         <option>Entire Homestay</option>
@@ -163,7 +189,7 @@ const Contact = () => {
                     </div>
                   </div>
                   <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                    <Button type="submit" disabled={loading} className="w-full py-8 rounded-[2rem] bg-primary text-white text-lg font-bold hover:bg-accent transition-all shadow-lg hover:shadow-2xl mt-4">
+                      <Button type="submit" disabled={loading} className="w-full py-8 rounded-[2rem] bg-primary text-white text-lg font-bold hover:bg-accent transition-all shadow-lg hover:shadow-2xl mt-4">
                       {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <>Send Inquiry <Send className="w-5 h-5 ml-2" /></>}
                     </Button>
                   </motion.div>
