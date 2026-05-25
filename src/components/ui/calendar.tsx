@@ -40,6 +40,7 @@ export interface CalendarProps {
   /** If provided, controls the initial collapsed state. If undefined, reads localStorage 'calendar-collapsed'. */
   startCollapsed?: boolean;
   collapsible?: boolean;
+  disableBookedDates?: boolean;
 }
 
 function datesEqual(a?: Date | null, b?: Date | null) {
@@ -61,6 +62,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   onDayClick,
   startCollapsed,
   collapsible = true,
+  disableBookedDates = true,
 }) => {
   const [currentDate, setCurrentDate] = useState<Date>(month ?? initialDate);
   const [selectedDate, setSelectedDate] = useState<Date | null>(
@@ -229,7 +231,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
               <AnimatePresence mode="popLayout">
                 {days.map((day, idx) => {
-                  const isDisabled = !!day.modifiers?.occupied || !!day.modifiers?.reserved;
+                  const isDisabled = disableBookedDates && (!!day.modifiers?.occupied || !!day.modifiers?.reserved);
                   return (
                     <motion.button
                       key={`${day.date.toDateString()}-${idx}`}

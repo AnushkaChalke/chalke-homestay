@@ -358,6 +358,7 @@ export default function BookingAdminDashboard() {
                     selected={selectedDate}
                     onDayClick={setSelectedDate}
                     collapsible={false}
+                    disableBookedDates={false}
                     modifiers={{
                       occupied: occupiedDates,
                       reserved: reservedDates,
