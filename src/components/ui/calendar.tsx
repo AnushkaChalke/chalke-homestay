@@ -260,8 +260,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                         "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
                         day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
                         (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount <= 0 ? 'bg-rose-500/15 text-rose-800' : '',
-                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount === 1 ? 'bg-orange-500/15 text-orange-800' : '',
-                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount === 2 ? 'bg-amber-500/15 text-amber-800' : '',
+                        (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount <= 2 && availabilityCount > 0 ? 'bg-amber-500/15 text-amber-800' : '',
                         (showDayAvailabilityCounts || colorByAvailability) && typeof availabilityCount === 'number' && availabilityCount >= 3 ? 'bg-emerald-500/15 text-emerald-800' : '',
                         isPastDate ? 'bg-slate-300 text-slate-700 cursor-not-allowed opacity-85' : '',
                         day.isToday ? "ring-2 ring-primary/15" : "",
@@ -290,14 +289,33 @@ export const Calendar: React.FC<CalendarProps> = ({
 
       {(!collapsible || !collapsed) && (
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded-full bg-rose-600" />
-            <span>Unavailable / Reserved</span>
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded-full border border-emerald-600 bg-emerald-100" />
-            <span>Requested</span>
-          </span>
+          {colorByAvailability ? (
+            <>
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-emerald-500" />
+                <span>Available</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-amber-500" />
+                <span>Hurry</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-rose-600" />
+                <span>Sold out</span>
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full bg-rose-600" />
+                <span>Unavailable / Reserved</span>
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="inline-block h-3 w-3 rounded-full border border-emerald-600 bg-emerald-100" />
+                <span>Requested</span>
+              </span>
+            </>
+          )}
         </div>
       )}
 
