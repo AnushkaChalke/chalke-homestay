@@ -154,34 +154,34 @@ export const Calendar: React.FC<CalendarProps> = ({
       initial={{ scale: 0.98, y: 6, filter: "blur(6px)" }}
       animate={{ scale: 1, y: 0, filter: "blur(0px)" }}
       transition={{ duration: 0.35 }}
-      className={cn("bg-white rounded-2xl shadow-sm p-6 w-full", maxWidth, className)}
+      className={cn("bg-white rounded-2xl shadow-sm p-3 sm:p-6 w-full", maxWidth, className)}
     >
       {/* Header */}
-      <motion.div initial={{ y: -6 }} animate={{ y: 0 }} className="flex items-center justify-between mb-6">
+      <motion.div initial={{ y: -6 }} animate={{ y: 0 }} className="flex items-center justify-between mb-4 sm:mb-6">
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={prevMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </motion.button>
 
-        <motion.h1 key={currentDate.getMonth()} className="text-lg font-semibold text-primary">
+        <motion.h1 key={currentDate.getMonth()} className="text-base font-semibold text-primary sm:text-lg">
           {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
         </motion.h1>
 
         <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.95 }} onClick={nextMonth} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </motion.button>
       </motion.div>
 
       {/* Weekdays */}
-      <div className="grid grid-cols-7 gap-1 mb-3">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2 sm:mb-3">
         {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-          <div key={day} className="py-1 text-center text-xs font-medium text-muted-foreground">
+          <div key={day} className="py-1 text-center text-[0.65rem] font-medium text-muted-foreground sm:text-xs">
             {day}
           </div>
         ))}
       </div>
 
       {/* Days */}
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         <AnimatePresence mode="popLayout">
           {days.map((day, idx) => (
             <motion.button
@@ -193,7 +193,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               whileTap={{ scale: 0.96 }}
               onClick={() => handleDateClick(day.date)}
               className={cn(
-                "p-3 rounded-md text-center transition-all duration-150",
+                "aspect-square rounded-md p-1 text-center text-sm transition-all duration-150 sm:p-3",
                 day.isCurrentMonth ? "text-primary" : "text-muted-foreground",
                 day.isToday ? "bg-secondary text-primary font-semibold" : "",
                 day.isSelected && !day.isToday ? "bg-primary/10 text-primary font-semibold" : "",

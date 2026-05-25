@@ -148,18 +148,18 @@ export default function BookingAdminDashboard() {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-6 rounded-[2rem] border bg-white/90 p-8 shadow-xl backdrop-blur">
+    <div className="space-y-4 sm:space-y-8">
+      <div className="flex flex-col gap-4 rounded-[1.25rem] border bg-white/90 p-3 shadow-xl backdrop-blur sm:rounded-[2rem] sm:p-6 lg:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-4 py-2 text-xs font-bold uppercase tracking-[0.3em] text-primary">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/10 bg-primary/5 px-3 py-2 text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary sm:px-4 sm:text-xs sm:tracking-[0.3em]">
               <ShieldCheck className="h-4 w-4" /> Admin booking console
             </div>
-            <h1 className="text-4xl font-headline font-bold text-primary">Reservation requests</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            <h1 className="text-2xl font-headline font-bold text-primary sm:text-4xl">Reservation requests</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:leading-normal">
               View booking requests, reserve rooms once confirmed, and keep a live record of guest interest.
             </p>
-            <div className="mt-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em]">
+            <div className="mt-4 inline-flex max-w-full flex-wrap items-center gap-2 rounded-full border px-3 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.2em] sm:px-4 sm:text-xs sm:tracking-[0.25em]">
               {connectionStatus === 'connected' ? (
                 <>
                   <DatabaseZap className="h-4 w-4 text-emerald-600" />
@@ -178,82 +178,82 @@ export default function BookingAdminDashboard() {
               )}
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button onClick={() => void loadBookings()} variant="outline" className="rounded-full" disabled={loading || isPending}>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:gap-3">
+            <Button onClick={() => void loadBookings()} variant="outline" className="w-full rounded-full py-2 sm:w-auto" disabled={loading || isPending}>
               {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCcw className="mr-2 h-4 w-4" />}
               Refresh
             </Button>
-            <Button onClick={logout} variant="secondary" className="rounded-full" disabled={isPending}>
+            <Button onClick={logout} variant="secondary" className="w-full rounded-full py-2 sm:w-auto" disabled={isPending}>
               <LogOut className="mr-2 h-4 w-4" />
               Logout
             </Button>
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           {[
             { label: 'Total requests', value: stats.total, icon: CalendarDays },
             { label: 'Waiting review', value: stats.requested, icon: Clock3 },
             { label: 'Reserved', value: stats.reserved, icon: CheckCircle2 },
           ].map((item) => (
-            <div key={item.label} className="rounded-3xl border border-muted bg-secondary/20 p-5">
-              <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-white shadow-sm">
-                <item.icon className="h-5 w-5 text-accent" />
+            <div key={item.label} className="rounded-2xl border border-muted bg-secondary/20 p-2.5 sm:rounded-3xl sm:p-5">
+              <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-2xl bg-white shadow-sm sm:mb-4 sm:h-11 sm:w-11">
+                <item.icon className="h-4 w-4 text-accent" />
               </div>
-              <div className="text-3xl font-bold text-primary">{item.value}</div>
-              <div className="mt-1 text-sm text-muted-foreground">{item.label}</div>
+              <div className="text-lg font-bold text-primary sm:text-3xl">{item.value}</div>
+              <div className="mt-1 text-[0.6rem] leading-tight text-muted-foreground sm:text-sm">{item.label}</div>
             </div>
           ))}
         </div>
 
-        <div className="rounded-[2rem] border border-primary/10 bg-gradient-to-br from-white to-secondary/20 p-5 shadow-sm">
-          <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="rounded-[1.25rem] border border-primary/10 bg-gradient-to-br from-white to-secondary/20 p-3 shadow-sm sm:rounded-[2rem] sm:p-5">
+          <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <div className="text-xs font-bold uppercase tracking-[0.3em] text-primary/50">Availability calendar</div>
-              <h2 className="mt-1 text-2xl font-headline font-bold text-primary">Who booked when</h2>
+              <div className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary/50 sm:text-xs sm:tracking-[0.3em]">Availability calendar</div>
+              <h2 className="mt-1 text-lg font-headline font-bold text-primary sm:text-2xl">Who booked when</h2>
               <p className="mt-1 text-sm text-muted-foreground">Blocked dates are marked by booking status so you can see the month at a glance.</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em]">
+            <div className="flex flex-wrap items-center gap-2 text-[0.65rem] font-semibold uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.2em]">
               <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-emerald-700"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Reserved</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-amber-700"><span className="h-2.5 w-2.5 rounded-full bg-amber-500" />Requested</span>
               <span className="inline-flex items-center gap-2 rounded-full border border-rose-500/20 bg-rose-500/10 px-3 py-2 text-rose-700"><span className="h-2.5 w-2.5 rounded-full bg-rose-500" />Unavailable</span>
             </div>
           </div>
 
-          <div className="grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-              <div className="rounded-[1.75rem] border bg-white p-5 shadow-sm order-2 lg:order-1">
+            <div className="grid gap-3 lg:grid-cols-[1.35fr_0.9fr] lg:gap-6">
+              <div className="order-2 rounded-[1.25rem] border bg-white p-3 shadow-sm sm:rounded-[1.75rem] sm:p-5 lg:order-1">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <div className="text-xs font-bold uppercase tracking-[0.3em] text-primary/50">Selected day</div>
-                    <h3 className="mt-1 text-xl font-bold text-primary">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
+                    <div className="text-[0.65rem] font-bold uppercase tracking-[0.25em] text-primary/50 sm:text-xs sm:tracking-[0.3em]">Selected day</div>
+                    <h3 className="mt-1 text-base font-bold text-primary sm:text-xl">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
                   </div>
-                  <div className="text-right text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  <div className="text-right text-[0.65rem] uppercase tracking-[0.15em] text-muted-foreground sm:text-xs sm:tracking-[0.2em]">
                     <div>{format(calendarMonth, 'MMMM yyyy')}</div>
                     <div>{visibleMonthBookings.length} visible bookings</div>
                   </div>
                 </div>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-2xl bg-secondary/20 p-4">
-                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Total</div>
-                    <div className="mt-1 text-2xl font-bold text-primary">{selectedDayBookings.length}</div>
+                <div className="mt-3 grid gap-2 sm:mt-5 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-secondary/20 p-3">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs sm:tracking-[0.25em]">Total</div>
+                    <div className="mt-1 text-xl font-bold text-primary sm:text-2xl">{selectedDayBookings.length}</div>
                   </div>
-                  <div className="rounded-2xl bg-emerald-500/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Reserved</div>
-                    <div className="mt-1 text-2xl font-bold text-emerald-700">{selectedDayBookings.filter((booking) => booking.status === 'reserved').length}</div>
+                  <div className="rounded-2xl bg-emerald-500/10 p-3">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs sm:tracking-[0.25em]">Reserved</div>
+                    <div className="mt-1 text-xl font-bold text-emerald-700 sm:text-2xl">{selectedDayBookings.filter((booking) => booking.status === 'reserved').length}</div>
                   </div>
-                  <div className="rounded-2xl bg-amber-500/10 p-4">
-                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Requested</div>
-                    <div className="mt-1 text-2xl font-bold text-amber-700">{selectedDayBookings.filter((booking) => booking.status === 'requested').length}</div>
+                  <div className="rounded-2xl bg-amber-500/10 p-3">
+                    <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground sm:text-xs sm:tracking-[0.25em]">Requested</div>
+                    <div className="mt-1 text-xl font-bold text-amber-700 sm:text-2xl">{selectedDayBookings.filter((booking) => booking.status === 'requested').length}</div>
                   </div>
                 </div>
 
-                <div className="mt-5 space-y-3">
+                <div className="mt-4 space-y-3">
                   {selectedDayBookings.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">No active booking overlaps this day.</div>
+                    <div className="rounded-2xl border border-dashed p-4 text-sm text-muted-foreground">No active booking overlaps this day.</div>
                   ) : (
                     selectedDayBookings.map((booking) => (
-                      <div key={booking.id} className="rounded-2xl border bg-secondary/10 p-4">
+                      <div key={booking.id} className="rounded-2xl border bg-secondary/10 p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="font-semibold text-primary">{booking.guestName}</div>
@@ -274,7 +274,7 @@ export default function BookingAdminDashboard() {
                 </div>
               </div>
 
-              <div className="rounded-[1.75rem] border bg-white p-6 shadow-sm order-1 lg:order-2 flex items-center justify-center">
+              <div className="order-1 flex items-center justify-center rounded-[1.25rem] border bg-white p-3 shadow-sm sm:rounded-[1.75rem] sm:p-6 lg:order-2">
                 <div className="w-full max-w-lg">
                   <Calendar
                     mode="single"
@@ -294,7 +294,7 @@ export default function BookingAdminDashboard() {
                       requested: 'bg-amber-100 text-amber-900 rounded-full',
                       selectedDay: 'ring-2 ring-primary ring-offset-2 ring-offset-white rounded-full',
                     }}
-                    className="w-full"
+                    className="w-full max-w-full"
                   />
                 </div>
               </div>
@@ -302,19 +302,72 @@ export default function BookingAdminDashboard() {
         </div>
       </div>
 
-      <div className="rounded-[2rem] border bg-white shadow-xl">
+      <div className="rounded-[1.25rem] border bg-white shadow-xl sm:rounded-[2rem]">
         {loading ? (
-          <div className="flex min-h-[320px] items-center justify-center text-muted-foreground">
+          <div className="flex min-h-[220px] items-center justify-center p-4 text-muted-foreground sm:min-h-[320px] sm:p-6">
             <Loader2 className="mr-3 h-5 w-5 animate-spin" /> Loading bookings...
           </div>
         ) : bookings.length === 0 ? (
-          <div className="flex min-h-[320px] flex-col items-center justify-center gap-3 p-10 text-center text-muted-foreground">
+          <div className="flex min-h-[220px] flex-col items-center justify-center gap-3 p-4 text-center text-muted-foreground sm:min-h-[320px] sm:p-10">
             <AlertCircle className="h-10 w-10 text-accent" />
             <p className="font-medium text-primary">No booking requests yet</p>
             <p className="max-w-md text-sm">New booking submissions from the website will appear here once the form starts posting to the database.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="grid gap-3 p-3 sm:p-6 md:hidden">
+              {bookings.map((booking) => (
+                <div key={booking.id} className="rounded-2xl border border-muted bg-white p-3 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-base font-semibold text-primary">{booking.guestName}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">{booking.phone}</div>
+                    </div>
+                    <span className={`inline-flex rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${statusStyles[booking.status]}`}>
+                      {booking.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 grid gap-2 text-sm text-muted-foreground">
+                    <div className="rounded-xl bg-secondary/20 px-3 py-2 text-primary">
+                      <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Stay</div>
+                      <div className="mt-1 font-medium">{booking.roomType}</div>
+                      <div className="text-sm text-muted-foreground">{booking.checkIn} → {booking.checkOut}</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-xl bg-muted/40 px-3 py-2">
+                        <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Guests</div>
+                        <div className="mt-1 font-medium text-primary">{booking.guests}</div>
+                      </div>
+                      <div className="rounded-xl bg-muted/40 px-3 py-2">
+                        <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Source</div>
+                        <div className="mt-1 truncate font-medium text-primary">{booking.source}</div>
+                      </div>
+                    </div>
+                    <div className="rounded-xl bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+                      <div>Created: {new Date(booking.createdAt).toLocaleString()}</div>
+                      <div className="mt-1">Updated: {new Date(booking.updatedAt).toLocaleString()}</div>
+                    </div>
+                    {booking.reservedRoom ? <div className="rounded-xl bg-secondary/30 px-3 py-2 text-sm text-primary">Room: {booking.reservedRoom}</div> : null}
+                    {booking.adminNote ? <div className="rounded-xl bg-secondary/20 px-3 py-2 text-sm text-primary">{booking.adminNote}</div> : null}
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    <Button size="sm" variant="outline" className="w-full rounded-full px-2 text-xs" onClick={() => updateStatus(booking.id, 'requested')} disabled={isPending}>
+                      Request
+                    </Button>
+                    <Button size="sm" className="w-full rounded-full px-2 text-xs bg-primary" onClick={() => updateStatus(booking.id, 'reserved')} disabled={isPending}>
+                      Reserve
+                    </Button>
+                    <Button size="sm" variant="destructive" className="w-full rounded-full px-2 text-xs" onClick={() => updateStatus(booking.id, 'cancelled')} disabled={isPending}>
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+              <div className="hidden overflow-x-auto md:block">
             <table className="min-w-full divide-y divide-muted">
               <thead className="bg-secondary/20 text-left text-xs uppercase tracking-[0.25em] text-muted-foreground">
                 <tr>
@@ -366,7 +419,8 @@ export default function BookingAdminDashboard() {
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
     </div>

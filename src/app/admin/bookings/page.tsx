@@ -9,8 +9,8 @@ export default async function AdminBookingsPage() {
   const configured = Boolean(getAdminPassword());
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 py-16">
-      <div className="container mx-auto px-6">
+    <main className="min-h-screen bg-gradient-to-b from-background via-background to-secondary/20 py-8 sm:py-16">
+      <div className="container mx-auto px-4 sm:px-6">
         {configured ? (
           authenticated ? (
             <BookingAdminDashboard />
