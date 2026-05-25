@@ -221,81 +221,83 @@ export default function BookingAdminDashboard() {
           </div>
 
           <div className="grid gap-6 lg:grid-cols-[1.35fr_0.9fr]">
-            <div className="rounded-[1.75rem] border bg-white p-4 shadow-sm">
-              <Calendar
-                mode="single"
-                month={calendarMonth}
-                onMonthChange={setCalendarMonth}
-                selected={selectedDate}
-                onDayClick={setSelectedDate}
-                modifiers={{
-                  occupied: occupiedDates,
-                  reserved: reservedDates,
-                  requested: requestedDates,
-                  selectedDay: [selectedDate],
-                }}
-                modifiersClassNames={{
-                  occupied: 'bg-rose-100 text-rose-900 rounded-full',
-                  reserved: 'bg-emerald-100 text-emerald-900 rounded-full',
-                  requested: 'bg-amber-100 text-amber-900 rounded-full',
-                  selectedDay: 'ring-2 ring-primary ring-offset-2 ring-offset-white rounded-full',
-                }}
-                className="w-full"
-              />
-            </div>
+              <div className="rounded-[1.75rem] border bg-white p-5 shadow-sm order-2 lg:order-1">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-[0.3em] text-primary/50">Selected day</div>
+                    <h3 className="mt-1 text-xl font-bold text-primary">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
+                  </div>
+                  <div className="text-right text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    <div>{format(calendarMonth, 'MMMM yyyy')}</div>
+                    <div>{visibleMonthBookings.length} visible bookings</div>
+                  </div>
+                </div>
 
-            <div className="rounded-[1.75rem] border bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-xs font-bold uppercase tracking-[0.3em] text-primary/50">Selected day</div>
-                  <h3 className="mt-1 text-xl font-bold text-primary">{format(selectedDate, 'EEEE, MMMM d, yyyy')}</h3>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-secondary/20 p-4">
+                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Total</div>
+                    <div className="mt-1 text-2xl font-bold text-primary">{selectedDayBookings.length}</div>
+                  </div>
+                  <div className="rounded-2xl bg-emerald-500/10 p-4">
+                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Reserved</div>
+                    <div className="mt-1 text-2xl font-bold text-emerald-700">{selectedDayBookings.filter((booking) => booking.status === 'reserved').length}</div>
+                  </div>
+                  <div className="rounded-2xl bg-amber-500/10 p-4">
+                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Requested</div>
+                    <div className="mt-1 text-2xl font-bold text-amber-700">{selectedDayBookings.filter((booking) => booking.status === 'requested').length}</div>
+                  </div>
                 </div>
-                <div className="text-right text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                  <div>{format(calendarMonth, 'MMMM yyyy')}</div>
-                  <div>{visibleMonthBookings.length} visible bookings</div>
-                </div>
-              </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl bg-secondary/20 p-4">
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Total</div>
-                  <div className="mt-1 text-2xl font-bold text-primary">{selectedDayBookings.length}</div>
-                </div>
-                <div className="rounded-2xl bg-emerald-500/10 p-4">
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Reserved</div>
-                  <div className="mt-1 text-2xl font-bold text-emerald-700">{selectedDayBookings.filter((booking) => booking.status === 'reserved').length}</div>
-                </div>
-                <div className="rounded-2xl bg-amber-500/10 p-4">
-                  <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Requested</div>
-                  <div className="mt-1 text-2xl font-bold text-amber-700">{selectedDayBookings.filter((booking) => booking.status === 'requested').length}</div>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                {selectedDayBookings.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">No active booking overlaps this day.</div>
-                ) : (
-                  selectedDayBookings.map((booking) => (
-                    <div key={booking.id} className="rounded-2xl border bg-secondary/10 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <div className="font-semibold text-primary">{booking.guestName}</div>
-                          <div className="text-sm text-muted-foreground">{booking.roomType}</div>
+                <div className="mt-5 space-y-3">
+                  {selectedDayBookings.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed p-5 text-sm text-muted-foreground">No active booking overlaps this day.</div>
+                  ) : (
+                    selectedDayBookings.map((booking) => (
+                      <div key={booking.id} className="rounded-2xl border bg-secondary/10 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="font-semibold text-primary">{booking.guestName}</div>
+                            <div className="text-sm text-muted-foreground">{booking.roomType}</div>
+                          </div>
+                          <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${statusStyles[booking.status]}`}>{booking.status}</span>
                         </div>
-                        <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${statusStyles[booking.status]}`}>{booking.status}</span>
+                        <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                          <div>Stay: {booking.checkIn} → {booking.checkOut}</div>
+                          <div>Phone: {booking.phone}</div>
+                          <div>Guests: {booking.guests}</div>
+                          <div>Source: {booking.source}</div>
+                        </div>
+                        {booking.adminNote ? <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-primary">{booking.adminNote}</div> : null}
                       </div>
-                      <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                        <div>Stay: {booking.checkIn} → {booking.checkOut}</div>
-                        <div>Phone: {booking.phone}</div>
-                        <div>Guests: {booking.guests}</div>
-                        <div>Source: {booking.source}</div>
-                      </div>
-                      {booking.adminNote ? <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-primary">{booking.adminNote}</div> : null}
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
-            </div>
+
+              <div className="rounded-[1.75rem] border bg-white p-6 shadow-sm order-1 lg:order-2 flex items-center justify-center">
+                <div className="w-full max-w-lg">
+                  <Calendar
+                    mode="single"
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    selected={selectedDate}
+                    onDayClick={setSelectedDate}
+                    modifiers={{
+                      occupied: occupiedDates,
+                      reserved: reservedDates,
+                      requested: requestedDates,
+                      selectedDay: [selectedDate],
+                    }}
+                    modifiersClassNames={{
+                      occupied: 'bg-rose-100 text-rose-900 rounded-full',
+                      reserved: 'bg-emerald-100 text-emerald-900 rounded-full',
+                      requested: 'bg-amber-100 text-amber-900 rounded-full',
+                      selectedDay: 'ring-2 ring-primary ring-offset-2 ring-offset-white rounded-full',
+                    }}
+                    className="w-full"
+                  />
+                </div>
+              </div>
           </div>
         </div>
       </div>
