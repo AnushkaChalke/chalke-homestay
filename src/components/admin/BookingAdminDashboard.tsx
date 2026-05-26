@@ -41,7 +41,13 @@ const ROOM_GROUPS = [
 ] as const;
 
 const displayDate = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
-const displayDateTime = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
+const displayDateTime = (value: string) => {
+  try {
+    return format(parseISO(value), 'dd-MM-yyyy HH:mm');
+  } catch {
+    return value;
+  }
+};
 
 function findAvailableRoom(booking: BookingRecord, allBookings: BookingRecord[]) {
   const pool = ROOM_GROUPS.find((group) => group.roomType === booking.roomType)?.rooms ?? [];

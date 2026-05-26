@@ -100,8 +100,20 @@ export async function createBooking(input: z.infer<typeof bookingInputSchema>) {
   const extraBedRate = 500;
   const extraBedTotal = input.extraBeds * extraBedRate;
 
-  const docRef = await firestore.collection('bookings').add({
+  // Ensure check-in/check-out include expected times if only a date was provided.
+  // Default: check-in 12:00 (noon), check-out 11:00.
+  const attachTimes = (value: string, time: string) => {
+    // simple heuristic: if value looks like YYYY-MM-DD (no T), append time
+    return value.includes('T') ? value : `${value}T${time}`;
+  };
+
+  const checkInWithTime = attachTimes(input.checkIn, '12:00:00');
+  const checkOutWithTime = attachTimes(input.checkOut, '11:00:00');
+
+  const payload = {
     ...input,
+    checkIn: checkInWithTime,
+    checkOut: checkOutWithTime,
     extraBedRate,
     extraBedTotal,
     status: 'requested' as const,
@@ -109,7 +121,9 @@ export async function createBooking(input: z.infer<typeof bookingInputSchema>) {
     adminNote: null,
     createdAt: now,
     updatedAt: now,
-  });
+  };
+
+  const docRef = await firestore.collection('bookings').add(payload);
 
   const snapshot = await docRef.get();
   return toBookingRecord(snapshot.id, snapshot.data() ?? {});

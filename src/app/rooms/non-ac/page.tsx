@@ -158,22 +158,34 @@ export default function NonACPage() {
 
   const handleCalendarDateSelect = (d: Date) => {
     const availableRooms = getAvailableRoomCountOnDate(bookings, d, 'Non-AC 1BHK Authentic');
-
-    if (availableRooms <= 0) {
-      setAvailabilityStatus('unavailable');
-      setAvailabilityMessage('Selected date is fully booked.');
-      return;
-    }
-
     const clicked = format(d, 'yyyy-MM-dd');
+
     if (!checkin) {
+      if (availableRooms <= 0) {
+        setAvailabilityStatus('unavailable');
+        setAvailabilityMessage('Selected date is fully booked.');
+        return;
+      }
+
       setCheckin(clicked);
       setAvailabilityMessage(`Hurry! Only ${availableRooms} room${availableRooms === 1 ? '' : 's'} left 🔥`);
       return;
     }
 
     if (checkin && !checkout) {
+      if (isEqual(parseISO(clicked), parseISO(checkin))) {
+        setAvailabilityStatus('unavailable');
+        setAvailabilityMessage('Check-out must be after check-in.');
+        return;
+      }
+
       if (isBefore(parseISO(clicked), parseISO(checkin))) {
+        if (availableRooms <= 0) {
+          setAvailabilityStatus('unavailable');
+          setAvailabilityMessage('Selected date is fully booked.');
+          return;
+        }
+
         setCheckin(clicked);
         setAvailabilityMessage(`Hurry! Only ${availableRooms} room${availableRooms === 1 ? '' : 's'} left 🔥`);
         return;
@@ -298,6 +310,7 @@ export default function NonACPage() {
                     className="w-full"
                     maxWidth=""
                     disablePastDates={true}
+                    disableBookedDates={false}
                     dayAvailabilityCounts={availabilityCounts}
                   />
                 </div>
@@ -326,10 +339,12 @@ export default function NonACPage() {
                   <div>
                     <label className="text-xs font-bold text-primary/70">Check-in</label>
                     <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                    <div className="text-xs text-muted-foreground mt-1">Check-in from 12:00 PM</div>
                   </div>
                   <div>
                     <label className="text-xs font-bold text-primary/70">Check-out</label>
                     <input value={checkout} onChange={(e) => setCheckout(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                    <div className="text-xs text-muted-foreground mt-1">Check-out by 11:00 AM</div>
                   </div>
                 </div>
 
