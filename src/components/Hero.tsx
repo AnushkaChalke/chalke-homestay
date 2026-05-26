@@ -7,6 +7,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { ChevronDown, Calendar, Users, Home as HomeIcon, ChevronUp, Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { parseFlexibleDate, toIsoDateString, DATE_INPUT_FORMAT } from '@/lib/date-input';
 
 const Hero = () => {
   const router = useRouter();
@@ -40,8 +41,8 @@ const Hero = () => {
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'available' | 'unavailable' | 'error'>('idle');
   const [availableRooms, setAvailableRooms] = useState<number | null>(null);
-  const today = new Date().toISOString().split('T')[0];
-  const checkoutMin = checkIn && checkIn > today ? checkIn : today;
+  const checkInDate = parseFlexibleDate(checkIn);
+  const checkOutDate = parseFlexibleDate(checkOut);
 
   const availabilityLabel =
     availabilityStatus === 'available'
@@ -69,7 +70,15 @@ const Hero = () => {
   const handleCheckAvailability = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!checkIn || !checkOut) {
+    const checkInIso = toIsoDateString(checkIn);
+    const checkOutIso = toIsoDateString(checkOut);
+
+    if (!checkInIso || !checkOutIso) {
+      setAvailabilityStatus('error');
+      return;
+    }
+
+    if (checkInDate && checkOutDate && checkOutDate <= checkInDate) {
       setAvailabilityStatus('error');
       return;
     }
@@ -79,8 +88,8 @@ const Hero = () => {
     try {
       const params = new URLSearchParams({
         roomType,
-        checkIn,
-        checkOut,
+        checkIn: checkInIso,
+        checkOut: checkOutIso,
         guests,
       });
 
@@ -102,12 +111,12 @@ const Hero = () => {
   };
 
   const handleBookNow = () => {
-    if (availabilityStatus !== 'available' || !checkIn || !checkOut) return;
+    if (availabilityStatus !== 'available' || !toIsoDateString(checkIn) || !toIsoDateString(checkOut)) return;
 
     const basePath = roomType === 'AC 1BHK Premium' ? '/rooms/ac' : '/rooms/non-ac';
     const params = new URLSearchParams({
-      checkIn,
-      checkOut,
+      checkIn: toIsoDateString(checkIn),
+      checkOut: toIsoDateString(checkOut),
       guests,
       roomType,
     });
@@ -231,10 +240,11 @@ const Hero = () => {
                     <label className="relative block">
                       <Calendar className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                       <input
-                        type="date"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={DATE_INPUT_FORMAT.toUpperCase()}
                         value={checkIn}
                         onChange={(event) => setCheckIn(event.target.value)}
-                        min={today}
                         className="w-full rounded-xl border border-white/20 bg-white/10 py-3 pl-12 pr-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         aria-label="Check-in date"
                       />
@@ -242,10 +252,11 @@ const Hero = () => {
                     <label className="relative block">
                       <Calendar className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-white/50" />
                       <input
-                        type="date"
+                        type="text"
+                        inputMode="numeric"
+                        placeholder={DATE_INPUT_FORMAT.toUpperCase()}
                         value={checkOut}
                         onChange={(event) => setCheckOut(event.target.value)}
-                        min={checkoutMin}
                         className="w-full rounded-xl border border-white/20 bg-white/10 py-3 pl-12 pr-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-accent"
                         aria-label="Check-out date"
                       />

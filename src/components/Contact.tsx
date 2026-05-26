@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Phone, MessageCircle, Mail, MapPin, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { toIsoDateString, DATE_INPUT_FORMAT } from '@/lib/date-input';
 
 const Contact = () => {
   const { toast } = useToast();
@@ -23,8 +24,8 @@ const Contact = () => {
         body: JSON.stringify({
           guestName: String(formData.get('guestName') ?? ''),
           phone: String(formData.get('phone') ?? ''),
-          checkIn: String(formData.get('checkIn') ?? ''),
-          checkOut: String(formData.get('checkOut') ?? ''),
+          checkIn: toIsoDateString(String(formData.get('checkIn') ?? '')),
+          checkOut: toIsoDateString(String(formData.get('checkOut') ?? '')),
           guests: String(formData.get('guests') ?? ''),
           roomType: String(formData.get('roomType') ?? ''),
           source: 'contact-form',
@@ -162,11 +163,11 @@ const Contact = () => {
                   <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Check-in</label>
-                      <input name="checkIn" required type="date" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
+                      <input name="checkIn" required type="text" inputMode="numeric" placeholder={DATE_INPUT_FORMAT.toUpperCase()} className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Check-out</label>
-                      <input name="checkOut" required type="date" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
+                      <input name="checkOut" required type="text" inputMode="numeric" placeholder={DATE_INPUT_FORMAT.toUpperCase()} className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" />
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4 sm:gap-6">

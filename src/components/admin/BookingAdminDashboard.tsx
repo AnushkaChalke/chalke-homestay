@@ -43,7 +43,7 @@ const ROOM_GROUPS = [
 const displayDate = (value: string) => format(parseISO(value), 'dd-MM-yyyy');
 const displayDateTime = (value: string) => {
   try {
-    return format(parseISO(value), 'dd-MM-yyyy HH:mm');
+    return format(parseISO(value), 'dd-MM-yyyy');
   } catch {
     return value;
   }
@@ -539,7 +539,7 @@ export default function BookingAdminDashboard() {
                           <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] ${statusStyles[booking.status]}`}>{booking.status}</span>
                         </div>
                         <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-                          <div>Stay: {booking.checkIn} → {booking.checkOut}</div>
+                          <div>Stay: {displayDate(booking.checkIn)} → {displayDate(booking.checkOut)}</div>
                           <div>Phone: {booking.phone}</div>
                           <div>Guests: {booking.guests}</div>
                           <div>Extra beds: {booking.extraBeds} ({booking.extraBedTotal} / night)</div>

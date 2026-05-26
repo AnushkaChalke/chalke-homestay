@@ -6,9 +6,10 @@ import { AlertCircle, ArrowLeft, ArrowRight, Bed, CalendarDays, Car, CheckCircle
 import { useToast } from '@/hooks/use-toast';
 import Calendar from '@/components/ui/calendar';
 import type { BookingRecord } from '@/lib/bookings';
+import { formatDateInputValue, parseFlexibleDate, toIsoDateString, DATE_INPUT_FORMAT } from '@/lib/date-input';
 import { getAvailableRoomCountOnDate, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
 import { useSearchParams } from 'next/navigation';
-import { addDays, differenceInCalendarDays, format, isBefore, isEqual, parseISO, startOfDay, startOfMonth } from 'date-fns';
+import { addDays, differenceInCalendarDays, format, isBefore, isEqual, startOfDay, startOfMonth } from 'date-fns';
 
 const BASE_NIGHTLY_RATE = 1500;
 const EXTRA_BED_RATE = 500;
@@ -46,8 +47,8 @@ export default function ACPage() {
     const initialCheckOut = searchParams.get('checkOut');
     const initialGuests = searchParams.get('guests');
     const initialExtraBeds = searchParams.get('extraBeds');
-    if (initialCheckIn) setCheckin(initialCheckIn);
-    if (initialCheckOut) setCheckout(initialCheckOut);
+    if (initialCheckIn) setCheckin(formatDateInputValue(initialCheckIn));
+    if (initialCheckOut) setCheckout(formatDateInputValue(initialCheckOut));
     if (initialGuests) setGuests(initialGuests);
     if (initialExtraBeds) setExtraBeds(initialExtraBeds);
   }, [searchParams]);
@@ -62,6 +63,15 @@ export default function ACPage() {
       return;
     }
 
+    const checkInIso = toIsoDateString(checkin);
+    const checkOutIso = toIsoDateString(checkout);
+
+    if (!checkInIso || !checkOutIso) {
+      setAvailabilityStatus('error');
+      setAvailabilityMessage(`Use the ${DATE_INPUT_FORMAT.toUpperCase()} format for dates.`);
+      return;
+    }
+
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setCheckingAvailability(true);
@@ -69,8 +79,8 @@ export default function ACPage() {
       try {
         const params = new URLSearchParams({
           roomType: 'AC 1BHK Premium',
-          checkIn: checkin,
-          checkOut: checkout,
+          checkIn: checkInIso,
+          checkOut: checkOutIso,
         });
         const response = await fetch(`/api/availability?${params.toString()}`, { signal: controller.signal, cache: 'no-store' });
 
@@ -133,10 +143,14 @@ export default function ACPage() {
   const selectedRangeDates = useMemo(() => {
     if (!checkin) return [] as Date[];
 
-    const start = startOfDay(parseISO(checkin));
-    if (!checkout) return [start];
+    const startDate = parseFlexibleDate(checkin);
+    const endDate = checkout ? parseFlexibleDate(checkout) : null;
+    if (!startDate) return [] as Date[];
 
-    const end = startOfDay(parseISO(checkout));
+    const start = startOfDay(startDate);
+    if (!endDate) return [start];
+
+    const end = startOfDay(endDate);
     if (isBefore(end, start)) return [start];
 
     const dates: Date[] = [];
@@ -150,7 +164,11 @@ export default function ACPage() {
   const stayNights = useMemo(() => {
     if (!checkin || !checkout) return 0;
 
-    const nights = differenceInCalendarDays(parseISO(checkout), parseISO(checkin));
+    const checkInDate = parseFlexibleDate(checkin);
+    const checkOutDate = parseFlexibleDate(checkout);
+    if (!checkInDate || !checkOutDate) return 0;
+
+    const nights = differenceInCalendarDays(checkOutDate, checkInDate);
     return nights > 0 ? nights : 0;
   }, [checkin, checkout]);
 
@@ -161,7 +179,9 @@ export default function ACPage() {
 
   const handleCalendarDateSelect = (d: Date) => {
     const availableRooms = getAvailableRoomCountOnDate(bookings, d, 'AC 1BHK Premium');
-    const clicked = format(d, 'yyyy-MM-dd');
+    const clicked = format(d, DATE_INPUT_FORMAT);
+    const clickedDate = parseFlexibleDate(clicked);
+    const currentCheckInDate = parseFlexibleDate(checkin);
 
     if (!checkin) {
       if (availableRooms <= 0) {
@@ -175,15 +195,17 @@ export default function ACPage() {
       return;
     }
 
-    if (checkin && !checkout) {
-      if (isEqual(parseISO(clicked), parseISO(checkin))) {
+    if (currentCheckInDate && !checkout) {
+      if (!clickedDate) return;
+
+      if (isEqual(clickedDate, currentCheckInDate ?? clickedDate)) {
         setAvailabilityStatus('unavailable');
         setAvailabilityMessage('Check-out must be after check-in.');
         return;
       }
 
       // if clicked is before checkin, treat as new checkin
-      if (isBefore(parseISO(clicked), parseISO(checkin))) {
+      if (currentCheckInDate && isBefore(clickedDate, currentCheckInDate)) {
         if (availableRooms <= 0) {
           setAvailabilityStatus('unavailable');
           setAvailabilityMessage('Selected date is fully booked.');
@@ -302,7 +324,7 @@ export default function ACPage() {
                     month={calendarMonth}
                     onMonthChange={setCalendarMonth}
                     modifiers={{
-                      occupied: Object.entries(availabilityCounts).filter(([, count]) => count <= 0).map(([key]) => parseISO(key)),
+                      occupied: Object.entries(availabilityCounts).map(([key]) => parseFlexibleDate(key)).filter((date): date is Date => Boolean(date) && availabilityCounts[format(date as Date, 'yyyy-MM-dd')] <= 0),
                       selectedDay: selectedRangeDates,
                     }}
                     modifiersClassNames={{
@@ -343,12 +365,12 @@ export default function ACPage() {
 
                   <div>
                     <label className="text-xs font-bold text-primary/70">Check-in</label>
-                    <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                    <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="text" inputMode="numeric" placeholder="DD-MM-YYYY" required className="w-full mt-1 p-3 rounded-xl border" />
                     <div className="text-xs text-muted-foreground mt-1">Check-in from 12:00 PM</div>
                   </div>
                   <div>
                     <label className="text-xs font-bold text-primary/70">Check-out</label>
-                    <input value={checkout} onChange={(e) => setCheckout(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
+                    <input value={checkout} onChange={(e) => setCheckout(e.target.value)} type="text" inputMode="numeric" placeholder="DD-MM-YYYY" required className="w-full mt-1 p-3 rounded-xl border" />
                     <div className="text-xs text-muted-foreground mt-1">Check-out by 11:00 AM</div>
                   </div>
                 </div>
