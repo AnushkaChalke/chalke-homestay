@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,14 +37,21 @@ const Navbar = () => {
       }`}
     >
       <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
-        <Link href="/" className="group flex items-center gap-2">
-          <motion.span 
+        <Link href="/" className="group flex items-center">
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`text-lg sm:text-2xl font-headline font-bold transition-colors duration-300 ${isScrolled ? 'text-primary' : 'text-white'}`}
+            className="transition-opacity duration-300 group-hover:opacity-90"
           >
-            Chalke Homestay
-          </motion.span>
+            <Image
+              src="/misc/logo1.png"
+              alt="Chalke Homestay"
+              width={220}
+              height={72}
+              priority
+              className="h-14 sm:h-16 w-auto"
+            />
+          </motion.div>
         </Link>
 
         {/* Desktop Nav */}
