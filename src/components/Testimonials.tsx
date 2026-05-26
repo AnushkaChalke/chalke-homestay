@@ -2,13 +2,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote } from 'lucide-react';
+import { Star, ExternalLink } from 'lucide-react';
 
-const reviews = [
-  { name: 'Sameer K.', role: 'Weekend Traveler', content: 'Perfect peaceful getaway. The river view from the terrace is something I will never forget. Truly authentic experience.', rating: 5 },
-  { name: 'Priya M.', role: 'Food Enthusiast', content: 'Amazing Konkani food! The Chicken Wade and Ghavne were delicious. The hosts treated us like family.', rating: 5 },
-  { name: 'David W.', role: 'Nature Lover', content: 'Beautiful riverside stay. Away from all the noise. Highly recommend for anyone looking to disconnect and recharge.', rating: 5 },
-];
+const googleReviewsUrl =
+  'https://www.google.com/maps/place/Chalke+Homestays/@17.5089307,73.5637848,17z/data=!4m8!3m7!1s0x3bc20544ea8b2df9:0x882c9ab486d7aaff!8m2!3d17.5089307!4d73.5637848!9m1!1b1!16s%2Fg%2F11n42vsqmx?entry=ttu&g_ep=EgoyMDI2MDUyMC4wIKXMDSoASAFQAw%3D%3D';
 
 const Testimonials = () => {
   return (
@@ -19,37 +16,30 @@ const Testimonials = () => {
           <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary">Warm Words from Our Visitors</h2>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          {reviews.map((review, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.2 }}
-              className="p-10 rounded-[2.5rem] bg-secondary/30 border border-muted relative group"
-            >
-              <Quote className="absolute top-8 right-10 w-12 h-12 text-primary/5 group-hover:text-accent/10 transition-colors" />
-              <div className="flex gap-1 mb-6">
-                {[...Array(review.rating)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-accent text-accent" />
-                ))}
-              </div>
-              <p className="text-lg text-primary/80 mb-8 italic font-light leading-relaxed">
-                "{review.content}"
-              </p>
-              <div className="flex items-center gap-4 border-t pt-6">
-                <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center font-bold text-accent">
-                  {review.name.charAt(0)}
-                </div>
-                <div>
-                  <h5 className="font-bold text-primary">{review.name}</h5>
-                  <p className="text-xs text-muted-foreground uppercase tracking-widest">{review.role}</p>
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="max-w-2xl mx-auto p-8 sm:p-10 rounded-[2.5rem] bg-secondary/30 border border-muted text-center"
+        >
+          <div className="flex justify-center gap-1 mb-6">
+            {[...Array(5)].map((_, i) => (
+              <Star key={i} className="w-5 h-5 fill-accent text-accent" />
+            ))}
+          </div>
+          <p className="text-base sm:text-lg text-primary/80 mb-8 leading-relaxed">
+            Read authentic guest reviews directly on Google.
+          </p>
+          <a
+            href={googleReviewsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-6 py-3 font-medium hover:opacity-90 transition-opacity"
+          >
+            View Google Reviews
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </motion.div>
       </div>
     </section>
   );
