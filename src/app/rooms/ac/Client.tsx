@@ -30,7 +30,8 @@ export default function ACClient() {
 
   const [index, setIndex] = useState(0);
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('+91 ');
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [guests, setGuests] = useState('2');
@@ -249,6 +250,7 @@ export default function ACClient() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guestName: name,
+          email,
           phone,
           checkIn: checkin,
           checkOut: checkout,
@@ -267,6 +269,7 @@ export default function ACClient() {
 
       toast({ title: 'Booking request sent', description: `Request for ${guests} guest${guests === '1' ? '' : 's'} received. We will contact you shortly.` });
       setName('');
+      setEmail('');
       setPhone('');
       setCheckin('');
       setCheckout('');
@@ -490,7 +493,11 @@ export default function ACClient() {
                   <input value={name} onChange={(e) => setName(e.target.value)} required className="mt-1 w-full rounded-xl border p-3" />
                 </div>
                 <div className="mt-4">
-                  <label className="text-xs font-bold text-primary/70">Phone</label>
+                  <label className="text-xs font-bold text-primary/70">Email address</label>
+                  <input value={email} onChange={(e) => setEmail(e.target.value)} type="email" required className="mt-1 w-full rounded-xl border p-3" />
+                </div>
+                <div className="mt-4">
+                  <label className="text-xs font-bold text-primary/70">Phone number (WhatsApp)</label>
                   <input value={phone} onChange={(e) => setPhone(e.target.value)} required className="mt-1 w-full rounded-xl border p-3" />
                 </div>
 

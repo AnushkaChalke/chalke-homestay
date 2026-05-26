@@ -23,6 +23,7 @@ const Contact = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guestName: String(formData.get('guestName') ?? ''),
+          email: String(formData.get('email') ?? ''),
           phone: String(formData.get('phone') ?? ''),
           checkIn: toIsoDateString(String(formData.get('checkIn') ?? '')),
           checkOut: toIsoDateString(String(formData.get('checkOut') ?? '')),
@@ -156,9 +157,13 @@ const Contact = () => {
                       <input name="guestName" required type="text" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="John Doe" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Phone Number</label>
-                      <input name="phone" required type="tel" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="+91 00000 00000" />
+                      <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Phone Number (WhatsApp)</label>
+                      <input name="phone" defaultValue="+91 " required type="tel" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="+91 00000 00000" />
                     </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-primary/40 ml-1">Email Address</label>
+                    <input name="email" required type="email" className="w-full bg-white border border-muted rounded-2xl py-3.5 sm:py-4 px-5 sm:px-6 focus:outline-none focus:ring-2 focus:ring-accent transition-all shadow-sm" placeholder="you@example.com" />
                   </div>
                   <div className="grid md:grid-cols-2 gap-4 sm:gap-6">
                     <div className="space-y-2">

@@ -6,6 +6,7 @@ export const bookingStatusValues = ['requested', 'reserved', 'cancelled'] as con
 
 export const bookingInputSchema = z.object({
   guestName: z.string().min(2, 'Guest name is required'),
+  email: z.string().email('A valid email is required'),
   phone: z.string().min(6, 'Phone number is required'),
   checkIn: z.string().min(1, 'Check-in date is required'),
   checkOut: z.string().min(1, 'Check-out date is required'),
@@ -28,6 +29,7 @@ export type BookingStatus = (typeof bookingStatusValues)[number];
 export type BookingRecord = {
   id: string;
   guestName: string;
+  email: string;
   phone: string;
   checkIn: string;
   checkOut: string;
@@ -46,6 +48,7 @@ export type BookingRecord = {
 
 type BookingDocument = {
   guestName: string;
+  email: string;
   phone: string;
   checkIn: string;
   checkOut: string;
@@ -76,6 +79,7 @@ function toBookingRecord(id: string, data: FirebaseFirestore.DocumentData): Book
   return {
     id,
     guestName: typedData.guestName,
+    email: typedData.email ?? '',
     phone: typedData.phone,
     checkIn: typedData.checkIn,
     checkOut: typedData.checkOut,

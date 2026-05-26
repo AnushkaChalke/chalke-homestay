@@ -9,7 +9,9 @@
     "build": "cross-env NODE_ENV=production next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "generate:favicons:win": "if not exist public\\favicons mkdir public\\favicons && magick public\\logo.png -resize 16x16 public\\favicons\\favicon-16x16.png && magick public\\logo.png -resize 32x32 public\\favicons\\favicon-32x32.png && magick public\\logo.png -resize 180x180 public\\favicons\\apple-touch-icon.png",
+    "generate:favicons": "node scripts/generate-favicons.js"
   },
   "dependencies": {
     "@genkit-ai/google-genai": "^1.28.0",
@@ -52,6 +54,7 @@
     "react-dom": "^19.2.1",
     "react-hook-form": "^7.54.2",
     "recharts": "^2.15.1",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "zod": "^3.24.2"

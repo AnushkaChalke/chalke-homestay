@@ -540,7 +540,8 @@ export default function BookingAdminDashboard() {
                         </div>
                         <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                           <div>Stay: {displayDate(booking.checkIn)} → {displayDate(booking.checkOut)}</div>
-                          <div>Phone: {booking.phone}</div>
+                          <div>Phone / WhatsApp: {booking.phone}</div>
+                          <div>Email: {booking.email || 'Not provided'}</div>
                           <div>Guests: {booking.guests}</div>
                           <div>Extra beds: {booking.extraBeds} ({booking.extraBedTotal} / night)</div>
                           <div>Source: {booking.source}</div>
@@ -603,7 +604,8 @@ export default function BookingAdminDashboard() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="text-base font-semibold text-primary">{booking.guestName}</div>
-                      <div className="mt-1 text-sm text-muted-foreground">{booking.phone}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Phone / WhatsApp: {booking.phone}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Email: {booking.email || 'Not provided'}</div>
                     </div>
                     <span className={`inline-flex rounded-full border px-2.5 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.18em] ${statusStyles[booking.status]}`}>
                       {booking.status}
@@ -666,7 +668,8 @@ export default function BookingAdminDashboard() {
                   <tr key={booking.id} className="align-top hover:bg-secondary/10">
                     <td className="px-6 py-5">
                       <div className="font-semibold text-primary">{booking.guestName}</div>
-                      <div className="mt-1 text-sm text-muted-foreground">{booking.phone}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Phone / WhatsApp: {booking.phone}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Email: {booking.email || 'Not provided'}</div>
                       <div className="mt-2 text-xs uppercase tracking-[0.25em] text-muted-foreground">Source: {booking.source}</div>
                     </td>
                     <td className="px-6 py-5 text-sm text-primary">
