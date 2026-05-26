@@ -16,9 +16,9 @@ const About = () => {
   const villageImage = PlaceHolderImages.find(img => img.id === 'about-village');
 
   return (
-    <section className="py-24 overflow-hidden" id="about">
-      <div className="container px-6 mx-auto">
-        <div className="flex flex-col lg:flex-row items-center gap-16">
+    <section className="py-16 md:py-24 overflow-hidden" id="about">
+      <div className="container px-4 sm:px-6 mx-auto">
+        <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -38,12 +38,12 @@ const About = () => {
             <motion.div
               animate={{ y: [0, -20, 0], x: [0, 10, 0] }}
               transition={{ duration: 8, repeat: Infinity }}
-              className="absolute -top-10 -right-10 w-48 h-48 bg-accent/10 backdrop-blur-xl border border-accent/20 rounded-3xl -z-10"
+              className="hidden sm:block absolute -top-10 -right-10 w-48 h-48 bg-accent/10 backdrop-blur-xl border border-accent/20 rounded-3xl -z-10"
             />
             <motion.div
               animate={{ y: [0, 20, 0], x: [0, -10, 0] }}
               transition={{ duration: 10, repeat: Infinity, delay: 1 }}
-              className="absolute -bottom-10 -left-10 w-64 h-64 bg-primary/5 backdrop-blur-xl border border-primary/10 rounded-3xl -z-10"
+              className="hidden sm:block absolute -bottom-10 -left-10 w-64 h-64 bg-primary/5 backdrop-blur-xl border border-primary/10 rounded-3xl -z-10"
             />
           </motion.div>
 
@@ -52,25 +52,25 @@ const About = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="flex-1"
+            className="flex-1 text-center lg:text-left"
           >
-            <span className="text-accent font-semibold tracking-widest uppercase text-sm mb-4 block">Our Heritage</span>
-            <h2 className="text-4xl md:text-5xl font-headline font-bold text-primary mb-8 leading-tight">
+            <span className="text-accent font-semibold tracking-widest uppercase text-xs sm:text-sm mb-4 block">Our Heritage</span>
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-headline font-bold text-primary mb-6 sm:mb-8 leading-tight">
               Escape to the Peace <br />of Chalke Homestay
             </h2>
-            <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground mb-6 sm:mb-8 leading-relaxed">
               Established in 2026, we bring you the ultimate Konkani village experience. Nestled away from city noise, our homestay offers a unique river-facing environment with majestic mountain views.
             </p>
-            <p className="text-lg text-muted-foreground mb-12 leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground mb-10 sm:mb-12 leading-relaxed">
               We pride ourselves on authentic Konkani hospitality, serving fresh local meals from our live kitchen and providing a serene atmosphere that recharges your soul.
             </p>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
               {stats.map((stat, index) => (
                 <motion.div
                   key={index}
                   whileHover={{ y: -5 }}
-                  className="p-4 rounded-2xl bg-secondary/50 border border-secondary flex flex-col items-center text-center"
+                  className="p-3 sm:p-4 rounded-2xl bg-secondary/50 border border-secondary flex flex-col items-center text-center"
                 >
                   <stat.icon className="w-6 h-6 text-accent mb-2" />
                   <span className="text-xs font-bold text-primary uppercase tracking-wider">{stat.value}</span>

@@ -11,6 +11,9 @@ export const bookingInputSchema = z.object({
   checkOut: z.string().min(1, 'Check-out date is required'),
   guests: z.string().min(1, 'Guest count is required'),
   roomType: z.string().min(1, 'Room type is required'),
+  extraBeds: z.number().int().min(0).max(2).default(0),
+  extraBedRate: z.number().int().positive().default(500),
+  extraBedTotal: z.number().int().min(0).default(0),
   source: z.string().optional().default('website'),
 });
 
@@ -30,6 +33,9 @@ export type BookingRecord = {
   checkOut: string;
   guests: string;
   roomType: string;
+  extraBeds: number;
+  extraBedRate: number;
+  extraBedTotal: number;
   source: string;
   status: BookingStatus;
   reservedRoom: string | null;
@@ -45,6 +51,9 @@ type BookingDocument = {
   checkOut: string;
   guests: string;
   roomType: string;
+  extraBeds: number;
+  extraBedRate: number;
+  extraBedTotal: number;
   source: string;
   status: BookingStatus;
   reservedRoom: string | null;
@@ -72,6 +81,9 @@ function toBookingRecord(id: string, data: FirebaseFirestore.DocumentData): Book
     checkOut: typedData.checkOut,
     guests: typedData.guests,
     roomType: typedData.roomType,
+    extraBeds: typedData.extraBeds ?? 0,
+    extraBedRate: typedData.extraBedRate ?? 500,
+    extraBedTotal: typedData.extraBedTotal ?? 0,
     source: typedData.source,
     status: typedData.status,
     reservedRoom: typedData.reservedRoom ?? null,
@@ -85,9 +97,13 @@ export async function createBooking(input: z.infer<typeof bookingInputSchema>) {
   assertFirestoreConfigured();
   const firestore = getFirestoreClient();
   const now = Timestamp.now();
+  const extraBedRate = 500;
+  const extraBedTotal = input.extraBeds * extraBedRate;
 
   const docRef = await firestore.collection('bookings').add({
     ...input,
+    extraBedRate,
+    extraBedTotal,
     status: 'requested' as const,
     reservedRoom: null,
     adminNote: null,

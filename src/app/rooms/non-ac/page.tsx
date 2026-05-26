@@ -7,10 +7,16 @@ import { useToast } from '@/hooks/use-toast';
 import Calendar from '@/components/ui/calendar';
 import type { BookingRecord } from '@/lib/bookings';
 import { getAvailableRoomCountOnDate, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
-import { addDays, format, isBefore, isEqual, parseISO, startOfDay, startOfMonth } from 'date-fns';
+import { useSearchParams } from 'next/navigation';
+import { addDays, differenceInCalendarDays, format, isBefore, isEqual, parseISO, startOfDay, startOfMonth } from 'date-fns';
+
+const BASE_NIGHTLY_RATE = 1200;
+const EXTRA_BED_RATE = 500;
+const MAX_EXTRA_BEDS = 2;
 
 export default function NonACPage() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
   const images = [
     'BED.jpeg',
     'BED_1.jpeg',
@@ -25,12 +31,24 @@ export default function NonACPage() {
   const [checkin, setCheckin] = useState('');
   const [checkout, setCheckout] = useState('');
   const [guests, setGuests] = useState('2');
+  const [extraBeds, setExtraBeds] = useState('0');
   const [submitting, setSubmitting] = useState(false);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
   const [availabilityStatus, setAvailabilityStatus] = useState<'idle' | 'available' | 'unavailable' | 'error'>('idle');
   const [availabilityMessage, setAvailabilityMessage] = useState('Select dates to check availability.');
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+
+  useEffect(() => {
+    const initialCheckIn = searchParams.get('checkIn');
+    const initialCheckOut = searchParams.get('checkOut');
+    const initialGuests = searchParams.get('guests');
+    const initialExtraBeds = searchParams.get('extraBeds');
+    if (initialCheckIn) setCheckin(initialCheckIn);
+    if (initialCheckOut) setCheckout(initialCheckOut);
+    if (initialGuests) setGuests(initialGuests);
+    if (initialExtraBeds) setExtraBeds(initialExtraBeds);
+  }, [searchParams]);
 
   const prev = () => setIndex((i) => (i - 1 + images.length) % images.length);
   const next = () => setIndex((i) => (i + 1) % images.length);
@@ -126,6 +144,18 @@ export default function NonACPage() {
     return dates;
   }, [checkin, checkout]);
 
+  const stayNights = useMemo(() => {
+    if (!checkin || !checkout) return 0;
+
+    const nights = differenceInCalendarDays(parseISO(checkout), parseISO(checkin));
+    return nights > 0 ? nights : 0;
+  }, [checkin, checkout]);
+
+  const extraBedCount = Number(extraBeds);
+  const extraBedTotal = extraBedCount * EXTRA_BED_RATE;
+  const nightlyTotal = BASE_NIGHTLY_RATE + extraBedTotal;
+  const estimatedStayTotal = stayNights > 0 ? stayNights * nightlyTotal : 0;
+
   const handleCalendarDateSelect = (d: Date) => {
     const availableRooms = getAvailableRoomCountOnDate(bookings, d, 'Non-AC 1BHK Authentic');
 
@@ -174,6 +204,9 @@ export default function NonACPage() {
           guests,
           roomType: 'Non-AC 1BHK Authentic',
           source: 'non-ac-room-page',
+          extraBeds: extraBedCount,
+          extraBedRate: EXTRA_BED_RATE,
+          extraBedTotal,
         }),
       });
 
@@ -186,6 +219,7 @@ export default function NonACPage() {
       setPhone('');
       setCheckin('');
       setCheckout('');
+      setExtraBeds('0');
     } catch {
       toast({ title: 'Booking could not be sent', description: 'Please try again or contact us directly.' });
     } finally {
@@ -233,7 +267,7 @@ export default function NonACPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm text-muted-foreground">Starting from</div>
-                    <div className="text-3xl font-bold">₹1,200 <span className="text-sm text-muted-foreground">/ night</span></div>
+                    <div className="text-3xl font-bold">₹{nightlyTotal.toLocaleString('en-IN')} <span className="text-sm text-muted-foreground">/ night</span></div>
                   </div>
                   <div className="text-right text-sm">
                     <div className="font-semibold">Instant request</div>
@@ -279,6 +313,16 @@ export default function NonACPage() {
                     </select>
                   </div>
 
+                  <div className="col-span-2">
+                    <label className="text-xs font-bold text-primary/70">Extra beds</label>
+                    <select value={extraBeds} onChange={(e) => setExtraBeds(e.target.value)} className="w-full mt-1 rounded-xl border p-3 text-sm">
+                      {Array.from({ length: MAX_EXTRA_BEDS + 1 }, (_, index) => (
+                        <option key={index} value={String(index)}>{index} extra bed{index === 1 ? '' : 's'}</option>
+                      ))}
+                    </select>
+                    <div className="mt-1 text-xs text-muted-foreground">₹{EXTRA_BED_RATE.toLocaleString('en-IN')} per bed per night</div>
+                  </div>
+
                   <div>
                     <label className="text-xs font-bold text-primary/70">Check-in</label>
                     <input value={checkin} onChange={(e) => setCheckin(e.target.value)} type="date" required className="w-full mt-1 p-3 rounded-xl border" />
@@ -296,6 +340,22 @@ export default function NonACPage() {
                 <div className="mt-4">
                   <label className="text-xs font-bold text-primary/70">Phone</label>
                   <input value={phone} onChange={(e) => setPhone(e.target.value)} required className="w-full mt-1 p-3 rounded-xl border" />
+                </div>
+
+                <div className="mt-4 rounded-2xl border border-secondary/30 bg-white/70 p-4 text-sm text-muted-foreground">
+                  <div className="flex items-center justify-between gap-3">
+                    <span>Base room rate</span>
+                    <span className="font-semibold text-primary">₹{BASE_NIGHTLY_RATE.toLocaleString('en-IN')} / night</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span>Extra bed charge</span>
+                    <span className="font-semibold text-primary">₹{extraBedTotal.toLocaleString('en-IN')} / night</span>
+                  </div>
+                  <div className="mt-2 flex items-center justify-between gap-3 border-t pt-2 text-base font-bold text-primary">
+                    <span>Estimated total</span>
+                    <span>₹{estimatedStayTotal.toLocaleString('en-IN') || '0'}</span>
+                  </div>
+                  {stayNights > 0 ? <div className="mt-1 text-xs">{stayNights} night{stayNights === 1 ? '' : 's'} × ₹{nightlyTotal.toLocaleString('en-IN')} / night</div> : null}
                 </div>
 
                 <div className="mt-5">

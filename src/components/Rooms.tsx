@@ -29,9 +29,9 @@ const rooms = [
 const Rooms = () => {
   const router = useRouter();
   return (
-    <section className="py-24 bg-secondary/30" id="rooms">
-      <div className="container px-6 mx-auto">
-        <div className="text-center mb-16">
+    <section className="py-16 md:py-24 bg-secondary/30" id="rooms">
+      <div className="container px-4 sm:px-6 mx-auto">
+        <div className="text-center mb-10 sm:mb-16">
           <motion.span
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ const Rooms = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-headline font-bold text-primary mb-4"
+            className="text-3xl sm:text-4xl md:text-5xl font-headline font-bold text-primary mb-4"
           >
             Choose Your Sanctuary
           </motion.h2>
@@ -60,7 +60,7 @@ const Rooms = () => {
           </motion.p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-12">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {rooms.map((room, index) => (
             <motion.div
               key={index}
@@ -84,13 +84,13 @@ const Rooms = () => {
                       3 Rooms Available
                     </div>
                   </div>
-                  <div className="p-10">
-                    <h3 className="text-3xl font-headline font-bold text-primary mb-4 group-hover:text-accent transition-colors">
+                  <div className="p-5 sm:p-8 lg:p-10">
+                    <h3 className="text-2xl sm:text-3xl font-headline font-bold text-primary mb-4 group-hover:text-accent transition-colors">
                       {room.title}
                     </h3>
-                    <p className="text-muted-foreground mb-8 line-clamp-2">{room.description}</p>
+                    <p className="text-sm sm:text-base text-muted-foreground mb-6 sm:mb-8 line-clamp-2">{room.description}</p>
 
-                    <div className="grid grid-cols-2 gap-4 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6 sm:mb-8">
                       {room.features.slice(0, 4).map((feat, idx) => (
                         <div key={idx} className="flex items-center gap-2 text-sm text-primary/70">
                           <motion.div 
@@ -105,21 +105,21 @@ const Rooms = () => {
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between border-t pt-8">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t pt-6 sm:pt-8">
                       <div>
                         <span className="block text-2xl font-bold text-primary">
                           {room.id === 'room-ac' ? '₹1,500' : '₹1,200'}
                         </span>
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Per Night</span>
                       </div>
-                      <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }}>
+                      <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">
                         {room.id === 'room-ac' ? (
-                          <Button onClick={() => router.push('/rooms/ac')} className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
+                          <Button onClick={() => router.push('/rooms/ac')} className="w-full sm:w-auto rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
                             Book Stay
                             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                           </Button>
                         ) : (
-                        <Button onClick={() => router.push('/rooms/non-ac')} className="rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
+                        <Button onClick={() => router.push('/rooms/non-ac')} className="w-full sm:w-auto rounded-full bg-primary hover:bg-accent px-8 group shadow-lg">
                           Book Stay
                           <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                         </Button>
@@ -136,7 +136,7 @@ const Rooms = () => {
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
-          className="text-center mt-12 text-sm text-muted-foreground italic"
+          className="text-center mt-10 sm:mt-12 text-xs sm:text-sm text-muted-foreground italic px-4"
         >
           * Extra mattress available with additional charges.
         </motion.p>

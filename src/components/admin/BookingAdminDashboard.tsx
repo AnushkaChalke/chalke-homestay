@@ -536,6 +536,7 @@ export default function BookingAdminDashboard() {
                           <div>Stay: {booking.checkIn} → {booking.checkOut}</div>
                           <div>Phone: {booking.phone}</div>
                           <div>Guests: {booking.guests}</div>
+                          <div>Extra beds: {booking.extraBeds} ({booking.extraBedTotal} / night)</div>
                           <div>Source: {booking.source}</div>
                         </div>
                         {booking.adminNote ? <div className="mt-3 rounded-2xl bg-white p-3 text-sm text-primary">{booking.adminNote}</div> : null}
@@ -619,6 +620,10 @@ export default function BookingAdminDashboard() {
                         <div className="mt-1 truncate font-medium text-primary">{booking.source}</div>
                       </div>
                     </div>
+                    <div className="rounded-xl bg-muted/30 px-3 py-2">
+                      <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Extra beds</div>
+                      <div className="mt-1 font-medium text-primary">{booking.extraBeds} × ₹{booking.extraBedRate} = ₹{booking.extraBedTotal}</div>
+                    </div>
                       <div className="rounded-xl bg-muted/30 px-3 py-2">
                         <div className="text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground">Room</div>
                         <div className="mt-2">{renderRoomSelector(booking)}</div>
@@ -664,6 +669,7 @@ export default function BookingAdminDashboard() {
                     </td>
                     <td className="px-6 py-5 text-sm text-muted-foreground">
                       <div>Guests: {booking.guests}</div>
+                      <div className="mt-2">Extra beds: {booking.extraBeds} (₹{booking.extraBedTotal})</div>
                       <div className="mt-2">Created: {displayDateTime(booking.createdAt)}</div>
                       <div className="mt-2">Updated: {displayDateTime(booking.updatedAt)}</div>
                       {booking.reservedRoom ? <div className="mt-2 text-primary">Room: {booking.reservedRoom}</div> : null}

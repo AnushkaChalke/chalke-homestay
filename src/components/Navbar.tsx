@@ -35,12 +35,12 @@ const Navbar = () => {
           : 'py-6 bg-transparent'
       }`}
     >
-      <div className="container mx-auto px-6 flex items-center justify-between">
+      <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between">
         <Link href="/" className="group flex items-center gap-2">
           <motion.span 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`text-2xl font-headline font-bold transition-colors duration-300 ${isScrolled ? 'text-primary' : 'text-white'}`}
+            className={`text-lg sm:text-2xl font-headline font-bold transition-colors duration-300 ${isScrolled ? 'text-primary' : 'text-white'}`}
           >
             Chalke Homestay
           </motion.span>
@@ -106,7 +106,7 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="absolute top-full left-0 right-0 bg-white border-b shadow-2xl p-6 md:hidden flex flex-col gap-4 overflow-hidden"
+            className="absolute top-full left-0 right-0 bg-white/95 backdrop-blur-xl border-b shadow-2xl p-5 md:hidden flex flex-col gap-4 overflow-hidden"
           >
             {navLinks.map((link, i) => (
               <motion.div
