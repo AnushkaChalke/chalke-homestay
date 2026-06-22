@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useRouter } from 'next/navigation';
+import { getDisplayedRoomPrice, isOfferActive, usePricingSettings } from '@/lib/pricing-settings-client';
 
 const rooms = [
   {
     title: 'AC 1BHK Premium',
     id: 'room-ac',
     description: 'Luxury AC rooms with modern amenities and a king size bed.',
+    originalPrice: '₹1,800',
+    offerPrice: '₹1,500',
     features: ['King Size Bed', 'Free WiFi', 'Geyser', 'Mountain View', '4 Guest Capacity'],
     image: PlaceHolderImages.find(img => img.id === 'room-ac'),
   },
@@ -21,6 +24,8 @@ const rooms = [
     title: 'Non-AC 1BHK Authentic',
     id: 'room-non-ac',
     description: 'Experience village life with natural breeze and scenic river views.',
+    originalPrice: '₹1,500',
+    offerPrice: '₹1,200',
     features: ['King Size Bed', 'Free WiFi', 'Geyser', 'River Atmosphere', '4 Guest Capacity'],
     image: PlaceHolderImages.find(img => img.id === 'room-non-ac'),
   },
@@ -28,6 +33,7 @@ const rooms = [
 
 const Rooms = () => {
   const router = useRouter();
+  const pricingSettings = usePricingSettings();
   return (
     <section className="py-16 md:py-24 bg-secondary/30" id="rooms">
       <div className="container px-4 sm:px-6 mx-auto">
@@ -107,9 +113,27 @@ const Rooms = () => {
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t pt-6 sm:pt-8">
                       <div>
-                        <span className="block text-2xl font-bold text-primary">
-                          {room.id === 'room-ac' ? '₹1,500' : '₹1,200'}
-                        </span>
+                        {(() => {
+                          const roomPricing = room.id === 'room-ac' ? pricingSettings.ac : pricingSettings.nonAc;
+                          const offerActive = isOfferActive(roomPricing);
+                          const displayPrice = getDisplayedRoomPrice(roomPricing);
+
+                          return offerActive ? (
+                            <>
+                              <div className="flex items-end gap-3">
+                                <span className="block text-2xl font-bold text-emerald-600">₹{displayPrice.toLocaleString('en-IN')}</span>
+                                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+                                  Limited Offer
+                                </span>
+                              </div>
+                              <span className="block text-sm text-red-600 line-through decoration-red-600">
+                                ₹{roomPricing.originalPrice.toLocaleString('en-IN')}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="block text-2xl font-bold text-primary">₹{displayPrice.toLocaleString('en-IN')}</span>
+                          );
+                        })()}
                         <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Per Night</span>
                       </div>
                       <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.95 }} className="w-full sm:w-auto">

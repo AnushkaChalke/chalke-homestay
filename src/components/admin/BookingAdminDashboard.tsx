@@ -9,6 +9,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { useToast } from '@/hooks/use-toast';
 import type { BookingRecord } from '@/lib/bookings';
 import { TOTAL_ROOM_CAPACITY, bookingOccupiesDate, bookingOverlapsRange, expandBookingDates, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
+import PricingOfferManager from '@/components/admin/PricingOfferManager';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -417,6 +418,8 @@ export default function BookingAdminDashboard() {
             </Button>
           </div>
         </div>
+
+        <PricingOfferManager />
 
         <div className="rounded-[1.25rem] border border-primary/10 bg-gradient-to-br from-white to-secondary/20 p-3 shadow-sm sm:rounded-[2rem] sm:p-5">
           <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

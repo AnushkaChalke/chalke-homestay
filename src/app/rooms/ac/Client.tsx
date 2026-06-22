@@ -10,8 +10,8 @@ import { formatDateInputValue, parseFlexibleDate, toIsoDateString, DATE_INPUT_FO
 import { getAvailableRoomCountOnDate, getAvailabilityCountsForMonth } from '@/lib/booking-calendar';
 import { useSearchParams } from 'next/navigation';
 import { addDays, differenceInCalendarDays, format, isBefore, isEqual, startOfDay, startOfMonth } from 'date-fns';
+import { getDisplayedRoomPrice, isOfferActive, usePricingSettings } from '@/lib/pricing-settings-client';
 
-const BASE_NIGHTLY_RATE = 1500;
 const EXTRA_BED_RATE = 500;
 const MAX_EXTRA_BEDS = 2;
 
@@ -42,6 +42,7 @@ export default function ACClient() {
   const [availabilityMessage, setAvailabilityMessage] = useState('Select dates to check availability.');
   const [bookings, setBookings] = useState<BookingRecord[]>([]);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+  const pricingSettings = usePricingSettings();
   const roomHighlights = [
     'King-size bedroom',
     'Private bathroom',
@@ -185,9 +186,13 @@ export default function ACClient() {
     return nights > 0 ? nights : 0;
   }, [checkin, checkout]);
 
+  const roomPricing = pricingSettings.ac;
+  const offerActive = isOfferActive(roomPricing);
+  const currentBaseRate = getDisplayedRoomPrice(roomPricing);
+
   const extraBedCount = Number(extraBeds);
   const extraBedTotal = extraBedCount * EXTRA_BED_RATE;
-  const nightlyTotal = BASE_NIGHTLY_RATE + extraBedTotal;
+  const nightlyTotal = currentBaseRate + extraBedTotal;
   const estimatedStayTotal = stayNights > 0 ? stayNights * nightlyTotal : 0;
 
   const handleCalendarDateSelect = (d: Date) => {
@@ -316,7 +321,19 @@ export default function ACClient() {
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <div className="text-xs uppercase tracking-[0.25em] text-white/60">Starting from</div>
-                    <div className="mt-1 text-3xl font-bold">₹{nightlyTotal.toLocaleString('en-IN')}</div>
+                    <div className="mt-1 flex items-end gap-3">
+                      <div className="text-3xl font-bold">₹{currentBaseRate.toLocaleString('en-IN')}</div>
+                      {offerActive ? (
+                        <div className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-emerald-200">
+                          Limited Offer
+                        </div>
+                      ) : (
+                        <div className="rounded-full bg-white/10 px-2.5 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-white/70">
+                          Standard Rate
+                        </div>
+                      )}
+                    </div>
+                    {offerActive ? <div className="mt-1 text-sm text-red-300 line-through decoration-red-300">₹{roomPricing.originalPrice.toLocaleString('en-IN')}</div> : null}
                     <div className="text-sm text-white/75">per night</div>
                   </div>
                   <div className="rounded-2xl bg-white/10 px-3 py-2 text-right text-xs uppercase tracking-[0.2em] text-white/75">
@@ -502,7 +519,14 @@ export default function ACClient() {
                 </div>
 
                 <div className="mt-4 rounded-2xl border border-secondary/30 bg-slate-50 p-4 text-sm text-muted-foreground">
-                  <div className="flex items-center justify-between gap-3"><span>Base room rate</span><span className="font-semibold text-primary">₹{BASE_NIGHTLY_RATE.toLocaleString('en-IN')} / night</span></div>
+                  {offerActive ? (
+                    <>
+                      <div className="flex items-center justify-between gap-3"><span>Base room rate</span><span className="font-semibold text-red-600 line-through decoration-red-600">₹{roomPricing.originalPrice.toLocaleString('en-IN')} / night</span></div>
+                      <div className="mt-2 flex items-center justify-between gap-3"><span>Offer price</span><span className="font-semibold text-emerald-600">₹{roomPricing.offerPrice.toLocaleString('en-IN')} / night</span></div>
+                    </>
+                  ) : (
+                    <div className="flex items-center justify-between gap-3"><span>Base room rate</span><span className="font-semibold text-primary">₹{roomPricing.originalPrice.toLocaleString('en-IN')} / night</span></div>
+                  )}
                   <div className="mt-2 flex items-center justify-between gap-3"><span>Extra bed charge</span><span className="font-semibold text-primary">₹{extraBedTotal.toLocaleString('en-IN')} / night</span></div>
                   <div className="mt-2 flex items-center justify-between gap-3 border-t pt-2 text-base font-bold text-primary"><span>Estimated total</span><span>₹{estimatedStayTotal.toLocaleString('en-IN') || '0'}</span></div>
                   {stayNights > 0 ? <div className="mt-1 text-xs">{stayNights} night{stayNights === 1 ? '' : 's'} × ₹{nightlyTotal.toLocaleString('en-IN')} / night</div> : null}
